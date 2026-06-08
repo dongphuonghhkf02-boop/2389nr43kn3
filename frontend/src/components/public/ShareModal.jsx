@@ -215,14 +215,14 @@ const ShareModal = ({ open, onClose, vin, snapshot }) => {
    * with `overflow:hidden` or CSS `transform` (e.g. cards on the
    * Welcome page that wrap the share-button trigger). */
   const node = (
-    <div className={styles.backdrop} role="dialog" aria-modal="true" aria-label="Share this car" onClick={onClose}>
+    <div className={styles.backdrop} role="dialog" aria-modal="true" aria-label="Поделиться авто" onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()} data-testid="share-modal">
-        <button type="button" className={styles.closeBtn} aria-label="Close" onClick={onClose}>×</button>
+        <button type="button" className={styles.closeBtn} aria-label="Закрыть" onClick={onClose}>×</button>
 
         <header className={styles.header}>
-          <h3 className={styles.title}>Share this car</h3>
+          <h3 className={styles.title}>Поделиться авто</h3>
           <p className={styles.subtitle}>
-            Send the link via Facebook, WhatsApp, Telegram or copy it to share it on any other channel.
+            Отправьте ссылку через Facebook, WhatsApp или Telegram — либо скопируйте её, чтобы поделиться в любом другом канале.
           </p>
         </header>
 
@@ -237,7 +237,7 @@ const ShareModal = ({ open, onClose, vin, snapshot }) => {
                 onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.classList.add(styles.vehicleImagePlaceholderShown); }}
               />
             ) : (
-              <span className={styles.vehicleImagePlaceholder}>No image</span>
+              <span className={styles.vehicleImagePlaceholder}>Нет фото</span>
             )}
           </div>
           <div className={styles.vehicleInfo}>
@@ -257,7 +257,7 @@ const ShareModal = ({ open, onClose, vin, snapshot }) => {
             type="text"
             className={styles.linkInput}
             readOnly
-            value={creating && !shareUrl ? 'Generating share link…' : (shareUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/cars/${vin}`)}
+            value={creating && !shareUrl ? 'Создаём ссылку…' : (shareUrl || `${typeof window !== 'undefined' ? window.location.origin : ''}/cars/${vin}`)}
             data-testid="share-modal-link-input"
             onFocus={(e) => e.target.select()}
           />
@@ -268,7 +268,7 @@ const ShareModal = ({ open, onClose, vin, snapshot }) => {
             className={[styles.copyBtn, copied ? styles.copyBtnCopied : ''].join(' ')}
             data-testid="share-modal-copy"
           >
-            {copied ? '✓ Copied' : 'Copy link'}
+            {copied ? '✓ Скопировано' : 'Копировать'}
           </button>
         </div>
 
@@ -308,7 +308,7 @@ const ShareModal = ({ open, onClose, vin, snapshot }) => {
         {error ? (
           <div className={[styles.statusNote, styles.statusNoteError].join(' ')} role="status">{error}</div>
         ) : copied ? (
-          <div className={[styles.statusNote, styles.statusNoteSuccess].join(' ')} role="status">Link copied to clipboard</div>
+          <div className={[styles.statusNote, styles.statusNoteSuccess].join(' ')} role="status">Ссылка скопирована</div>
         ) : (
           <div className={styles.statusNote} aria-hidden="true">{description}</div>
         )}
