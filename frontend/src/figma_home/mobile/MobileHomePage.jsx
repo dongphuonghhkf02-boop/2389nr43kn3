@@ -51,22 +51,24 @@ const FALLBACK_PHONES = ['+359 875 313 158', '+359 897 884 804'];
 
 const FALLBACK_HERO = {
   en: {
-    eyebrow: 'germany | europe',
-    title_line1: 'From Germany.',
+    eyebrow: 'europe',
+    title_line1: 'From Europe.',
     title_line2: 'To your',
     title_line3: 'driveway.',
     kpi1: '/ Mobile.de · BCA · Autobid',
     kpi2: '/ MILD logistics across EU',
     kpi3: '/ Transparent EUR pricing',
+    kpi4: '/ Delivery across Russia & Belarus',
   },
   ru: {
-    eyebrow: 'Германия | Европа',
-    title_line1: 'Из Германии.',
-    title_line2: 'К твоей',
-    title_line3: 'двери.',
+    eyebrow: 'Европа',
+    title_line1: 'Из Европы.',
+    title_line2: 'Прямо к вашему',
+    title_line3: 'порогу.',
     kpi1: '/ Mobile.de · BCA · Autobid',
-    kpi2: '/ MILD логистика в ЕС',
+    kpi2: '/ Логистика MILD по ЕС',
     kpi3: '/ Прозрачные цены в евро',
+    kpi4: '/ Доставка по России и Беларуси',
   },
 };
 
@@ -395,6 +397,7 @@ export default function MobileHomePage() {
   const kpi1 = fmtLang(hero[`kpi1_${langKey}`] || hero.kpi1, langKey) || fallbackHero.kpi1;
   const kpi2 = fmtLang(hero[`kpi2_${langKey}`] || hero.kpi2, langKey) || fallbackHero.kpi2;
   const kpi3 = fmtLang(hero[`kpi3_${langKey}`] || hero.kpi3, langKey) || fallbackHero.kpi3;
+  const kpi4 = fmtLang(hero[`kpi4_${langKey}`] || hero.kpi4, langKey) || fallbackHero.kpi4;
 
   // FAQ
   const faqEnabled = siteInfo?.faq?.enabled !== false;
@@ -540,22 +543,24 @@ export default function MobileHomePage() {
           />
         </div>
 
-        {/* KPIs — 3 chips per row, exact Figma sizes 93×13, H Semibold 11px,
-            text is sentence-case (NOT uppercase), middle one is centered. */}
+        {/* KPIs — 4 chips matching the desktop hero. On 360px we use a
+            2×2 grid so each long bullet (e.g. "Доставка по России и
+            Беларуси") gets enough room without truncating. */}
         <div
           className="mt-6 px-4"
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr 1fr',
+            gridTemplateColumns: '1fr 1fr',
             alignItems: 'center',
-            justifyItems: 'center',
-            gap: 8,
+            justifyItems: 'stretch',
+            gap: '8px 12px',
           }}
         >
           {[
             { val: kpi1, align: 'flex-start', roll: true },
-            { val: kpi2, align: 'center' },
-            { val: kpi3, align: 'flex-end' },
+            { val: kpi2, align: 'flex-start' },
+            { val: kpi3, align: 'flex-start' },
+            { val: kpi4, align: 'flex-start' },
           ].map((k, i) => (
             <div
               key={i}
@@ -563,20 +568,16 @@ export default function MobileHomePage() {
               style={{
                 fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
                 fontWeight: 600,
-                // Adaptive font size — shrinks slightly on very narrow screens
-                // and for long localized strings (BG/UK can be ~2x longer than EN).
                 fontSize: 'clamp(9.5px, 2.6vw, 11px)',
-                lineHeight: 1.25,
+                lineHeight: 1.3,
                 letterSpacing: 0,
                 textTransform: 'none',
                 width: '100%',
                 minWidth: 0,
-                // Allow soft wrap inside each cell instead of overflowing — keeps
-                // grid layout intact when localized text is longer than EN.
                 whiteSpace: 'normal',
                 overflowWrap: 'anywhere',
                 wordBreak: 'normal',
-                textAlign: i === 0 ? 'left' : i === 1 ? 'center' : 'right',
+                textAlign: 'left',
               }}
             >
               {k.roll ? renderKpiWithRolling(k.val) : k.val}

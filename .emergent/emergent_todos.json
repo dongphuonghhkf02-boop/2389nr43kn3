@@ -1,22 +1,18 @@
 [
   {
-    "content": "Copy repository code from /tmp/repo to /app (preserve .env files)",
+    "content": "Mobile Hero: унифицировать с web",
     "status": "completed"
   },
   {
-    "content": "Install backend Python dependencies",
+    "content": "MobileFooter: убрать VAT/ID/PM AUTO GROUP/O.la, три legal-ссылки в одну строку",
     "status": "completed"
   },
   {
-    "content": "Install frontend Node dependencies (yarn)",
+    "content": "MobileTopDeals: переключить на /api/public/cars (curated) — ссылки ведут на /cars/{slug}",
     "status": "completed"
   },
   {
-    "content": "Start services via supervisor and verify logs",
-    "status": "completed"
-  },
-  {
-    "content": "Verify frontend & backend reachable via preview URL",
+    "content": "Финальный визуальный тест (hero RU → 4 KPI, footer → одна строка, карточка авто → SingleCarPage)",
     "status": "completed"
   }
 ]

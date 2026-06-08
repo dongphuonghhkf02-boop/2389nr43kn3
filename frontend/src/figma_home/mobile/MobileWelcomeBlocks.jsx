@@ -177,18 +177,34 @@ export function MobilePopularBrands() {
 }
 
 /* ═════════════════════ 2. Top Vehicle Deals ═══════════════════════════
-   Mirrors VehicleDeals1 + FrameComponent21. Loads up to 6 cars from
-   /api/public/vehicles. Horizontal scroll-snap carousel — 1 card per
-   screen with a small "next card" peek. Falls back gracefully when no
-   data is available.
+   Mirrors desktop VehicleDeals1 + FrameComponent21. Loads up to 6 cars
+   from the admin-curated `/api/public/cars` endpoint (NOT the raw
+   scraped /api/public/vehicles list) so that:
+     • every card has a real slug that exists in the curated catalog,
+     • clicking a card opens /cars/{slug} → renders the new SingleCarPage,
+     • content stays in sync with what the admin promotes on desktop.
+   Falls back gracefully when no curated cars are available.
    ════════════════════════════════════════════════════════════════════ */
 
 function dealsCardImage(v) {
+  // Curated cars store the gallery under `images` (array of strings) or
+  // under `gallery` (array of objects with `url`). Pick whichever has a
+  // usable URL first.
   const arr = Array.isArray(v.images) ? v.images.filter(Boolean) : [];
-  return arr[0] || '/mobile/image-15@2x.png';
+  if (arr.length > 0) return arr[0];
+  const gal = Array.isArray(v.gallery) ? v.gallery : [];
+  for (const g of gal) {
+    const u = typeof g === 'string' ? g : g?.url || g?.src;
+    if (u) return u;
+  }
+  return v.cover_image_url || v.main_image || '/mobile/image-15@2x.png';
 }
 
 function dealsCardPrice(v) {
+  // Curated cars: `price_eur` (number). Legacy fallback to current_bid.
+  if (Number.isFinite(Number(v.price_eur))) {
+    return `€${Number(v.price_eur).toLocaleString('en-US')}`;
+  }
   const cur = (v.current_bid_currency || 'EUR').toUpperCase();
   const sym = cur === 'USD' ? '$' : cur === 'EUR' ? '€' : '';
   if (Number.isFinite(Number(v.current_bid))) {
@@ -208,12 +224,12 @@ export function MobileTopDeals() {
     let cancelled = false;
     (async () => {
       try {
-        const r = await axios.get(`${API}/api/public/vehicles`, {
-          params: { limit: 6, skip: 0 },
+        const r = await axios.get(`${API}/api/public/cars`, {
+          params: { page_size: 6 },
           timeout: 18000,
         });
         if (cancelled) return;
-        const arr = Array.isArray(r.data?.data) ? r.data.data : [];
+        const arr = Array.isArray(r.data?.items) ? r.data.items : [];
         setCars(arr);
       } catch {
         if (!cancelled) setCars([]);
@@ -289,11 +305,18 @@ export function MobileTopDeals() {
           }}
         >
           {cars.map((v, i) => {
-            const slug = v.slug || v.vin || v.lot_number;
-            const name = v.title || `${v.year || ''} ${v.make || ''} ${v.model || ''}`.trim();
-            const km = Number.isFinite(v.odometer)
-              ? `${Number(v.odometer).toLocaleString()} ${(v.odometer_unit || 'km').toUpperCase()}`
-              : null;
+            // Curated /api/public/cars returns objects with `slug` always
+            // present (the SingleCarPage looks up by slug). Fall back to
+            // id / VIN only for legacy payloads.
+            const slug = v.slug || v.id || v.vin;
+            const name = (isRu ? v.title_ru : v.title_en)
+              || v.title
+              || `${v.year || ''} ${v.make || ''} ${v.model || ''}`.trim();
+            const km = Number.isFinite(Number(v.mileage_km))
+              ? `${Number(v.mileage_km).toLocaleString()} km`
+              : (Number.isFinite(v.odometer)
+                  ? `${Number(v.odometer).toLocaleString()} ${(v.odometer_unit || 'km').toUpperCase()}`
+                  : null);
             return (
               <a
                 key={slug || i}

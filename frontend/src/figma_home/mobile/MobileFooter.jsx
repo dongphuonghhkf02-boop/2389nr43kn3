@@ -394,66 +394,62 @@ export default function MobileFooter({ lang: langProp }) {
         </nav>
       </div>
 
-      {/* ─── Legal row ───────────────────────────────────────────────── */}
+      {/* ─── Legal row — Conditions · Privacy · Cookies (single line) ─── */}
       <div
         data-testid="footer-legal-row"
         style={{
-          padding: '16px 20px 12px',
+          padding: '16px 20px 20px',
           borderTop: '1px solid rgba(22, 46, 81, 0.08)',
           display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
+          flexWrap: 'nowrap',
+          justifyContent: 'center',
+          alignItems: 'center',
           gap: 12,
         }}
       >
         {[
           { fallback: langKey === 'ru' ? 'Условия' : 'Conditions',         tKey: 'mobileFooterConditions', key: 'conditions' },
           { fallback: langKey === 'ru' ? 'Конфиденциальность' : 'Privacy', tKey: 'mobileFooterPrivacy',    key: 'privacy'    },
-          { fallback: langKey === 'ru' ? 'Cookies' : 'Cookies',            tKey: 'mobileFooterCookies',    key: 'cookies'    },
-        ].map((it) => (
-          <button
-            key={it.key}
-            type="button"
-            data-testid={`footer-policy-${it.key}`}
-            onClick={() => openPolicy(it.key)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              padding: 0,
-              cursor: 'pointer',
-              fontWeight: 500,
-              fontSize: 11,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              color: '#7a8699',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t(it.tKey) || it.fallback}
-          </button>
+          { fallback: 'Cookies',                                           tKey: 'mobileFooterCookies',    key: 'cookies'    },
+        ].map((it, idx, arr) => (
+          <React.Fragment key={it.key}>
+            <button
+              type="button"
+              data-testid={`footer-policy-${it.key}`}
+              onClick={() => openPolicy(it.key)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                fontWeight: 500,
+                fontSize: 10,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+                color: '#7a8699',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+              }}
+            >
+              {t(it.tKey) || it.fallback}
+            </button>
+            {idx < arr.length - 1 ? (
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 3,
+                  height: 3,
+                  borderRadius: '50%',
+                  background: '#cbd2dc',
+                  flexShrink: 0,
+                }}
+              />
+            ) : null}
+          </React.Fragment>
         ))}
       </div>
 
-      {/* ─── VAT / Company line ──────────────────────────────────────── */}
-      <div
-        data-testid="footer-vat-id"
-        style={{
-          padding: '8px 20px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          gap: 8,
-          fontSize: 10,
-          color: '#7a8699',
-          letterSpacing: '0.04em',
-        }}
-      >
-        <span>VAT BG206637283</span>
-        <span>ID 206637283</span>
-        <span>PM AUTO GROUP LTD</span>
-      </div>
-
-      {/* ─── Copyright + credits ─────────────────────────────────────── */}
+      {/* ─── Copyright ────────────────────────────────────────────────── */}
       <div
         data-testid="footer-copyright"
         style={{
@@ -468,20 +464,6 @@ export default function MobileFooter({ lang: langProp }) {
         <span style={{ fontSize: 11, letterSpacing: '0.04em' }}>
           © {new Date().getFullYear()} DM AUTO · {langKey === 'ru' ? 'Все права защищены' : 'All rights reserved'}
         </span>
-        <a
-          href="https://www.olhalazarieva.com"
-          target="_blank"
-          rel="noreferrer noopener"
-          data-testid="footer-credit-design"
-          style={{
-            fontSize: 10,
-            color: '#7a8699',
-            textDecoration: 'none',
-            letterSpacing: '0.04em',
-          }}
-        >
-          / Website design — O.la /
-        </a>
       </div>
     </footer>
   );
