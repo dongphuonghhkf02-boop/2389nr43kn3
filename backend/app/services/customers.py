@@ -829,7 +829,7 @@ async def ensure_customer_seed(customer_id: str):
                 'id': f"notif_{customer_id}_4",
                 'customerId': customer_id,
                 'title': 'Tesla Model 3 доставлено',
-                'message': 'Автомобіль успішно передано. Дякуємо за вибір BIBI Cars!',
+                'message': 'Автомобіль успішно передано. Дякуємо за вибір DM Auto!',
                 'type': 'delivery',
                 'isRead': True,
                 'createdAt': now - timedelta(days=7),

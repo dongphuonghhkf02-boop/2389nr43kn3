@@ -167,31 +167,32 @@ const CabinetLayoutInner = () => {
   return (
     <div className="cabinet-scope min-h-screen bg-[#F8F8F8]" data-theme={theme} data-testid="cabinet-root">
       {/* ── Mobile top bar (only `<lg`) ─────────────────────────────────
-       *  Hamburger + page-aware label + avatar. Keeps the cabinet usable
-       *  on phones — the legacy stack-everything-above-content layout
-       *  buried the actual page below 14 sidebar items. */}
+       *  Hamburger + page-aware label + avatar. Uses the DM Auto brand
+       *  palette (paper bg + navy text + amber accent stripe). */}
       <header
-        className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 h-14 bg-[#0F0F0E] border-b border-[#27272A]"
+        className="lg:hidden sticky top-0 z-30 flex items-center justify-between gap-3 px-4 h-14 bg-[#FFFDFC] border-b border-[#E6DED4] relative"
         data-testid="cabinet-mobile-topbar"
       >
+        {/* amber accent stripe at the very bottom of the topbar */}
+        <span className="absolute left-0 right-0 bottom-0 h-[2px] bg-gradient-to-r from-[#FEAE00] via-[#FFEA43] to-transparent" />
         <button
           type="button"
           onClick={() => setMobileNavOpen(true)}
-          className="w-10 h-10 -ml-2 rounded-lg flex items-center justify-center text-zinc-100 hover:bg-white/5 active:bg-white/10 transition-colors"
+          className="w-10 h-10 -ml-2 rounded-lg flex items-center justify-center text-[#162E51] hover:bg-[rgba(22,46,81,0.08)] active:bg-[rgba(22,46,81,0.14)] transition-colors"
           aria-label={t('cab_open_menu') || 'Open menu'}
           data-testid="cabinet-mobile-menu-open"
         >
           <MenuIcon size={22} weight="regular" />
         </button>
         <div className="flex-1 min-w-0 text-center">
-          <div className="text-[11px] uppercase tracking-[0.14em] text-zinc-500 leading-none">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[#FEAE00] font-bold leading-none">
             DM Auto
           </div>
-          <div className="text-[13px] font-semibold text-zinc-100 truncate leading-tight mt-0.5">
+          <div className="text-[13px] font-semibold text-[#17202A] truncate leading-tight mt-0.5">
             {customer?.firstName || customer?.name || t('adm3_2e8ee1588e')}
           </div>
         </div>
-        <div className="w-9 h-9 rounded-lg overflow-hidden bg-[#18181B] text-white flex items-center justify-center font-bold text-sm shrink-0">
+        <div className="dm-avatar w-9 h-9 rounded-lg overflow-hidden bg-[#18181B] text-white flex items-center justify-center font-bold text-sm shrink-0">
           {avatarUrl
             ? <img src={avatarUrl} alt="" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display='none'; }} />
             : initial}
@@ -242,9 +243,15 @@ const CabinetLayoutInner = () => {
               <CloseIcon size={20} />
             </button>
           </div>
-          <div className="mb-4 pb-3 border-b border-[#E4E4E7]">
+          <div className="mb-4 pb-3 border-b border-[#E4E4E7] relative">
+            {/* Decorative DM Auto brand stripes */}
+            <div className="absolute -top-1 right-0 flex flex-col gap-[3px] opacity-80">
+              <span className="block h-[3px] w-[22px] rounded-full bg-gradient-to-r from-[#162E51] to-[#FEAE00]" />
+              <span className="block h-[3px] w-[34px] rounded-full bg-gradient-to-r from-[#162E51] to-[#FEAE00]" />
+              <span className="block h-[3px] w-[16px] rounded-full bg-gradient-to-r from-[#162E51] to-[#FEAE00]" />
+            </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#18181B] text-white flex items-center justify-center font-bold text-sm shrink-0">
+              <div className="dm-avatar w-10 h-10 rounded-xl overflow-hidden bg-[#18181B] text-white flex items-center justify-center font-bold text-sm shrink-0">
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
@@ -260,7 +267,7 @@ const CabinetLayoutInner = () => {
                 <h2 className="font-semibold text-[#18181B] text-sm truncate">
                   {customer?.firstName || customer?.name || t('adm3_2e8ee1588e')}
                 </h2>
-                <p className="text-xs text-[#71717A] truncate">{t('adm_bibi_cars_2')}</p>
+                <p className="text-[11px] uppercase tracking-[0.12em] text-[#FEAE00] font-bold truncate mt-0.5">DM Auto</p>
               </div>
             </div>
 
@@ -362,39 +369,103 @@ export const CabinetDashboard = () => {
 
   return (
     <div className="space-y-4" data-testid="cabinet-dashboard">
+      {/* ── Hero greeting card — DM Auto brand palette ───────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white border border-[#E4E4E7] rounded-2xl p-6"
+        transition={{ duration: 0.45, ease: [0.2, 0.7, 0.2, 1] }}
+        className="relative overflow-hidden bg-white border border-[#E4E4E7] rounded-2xl p-6 dm-hero-card"
       >
-        <h1 className="text-2xl font-bold text-[#18181B]">
-          {t('r9_hello')} {name}!
-        </h1>
-        <p className="text-sm text-[#71717A] mt-2">
-          {t('adm_browse_our_catalog_and_choose_your_dream_car')}
-        </p>
+        {/* Decorative diagonal stripes pattern (subtle) */}
+        <div className="absolute inset-0 dm-pattern-stripes pointer-events-none" />
+        {/* Top amber stripe — echoes the homepage hero accent */}
+        <span className="absolute left-0 right-0 top-0 h-[3px] bg-gradient-to-r from-[#FEAE00] via-[#FFEA43] to-transparent" />
+        {/* Vertical navy amber bars (DM Auto signature) */}
+        <div className="absolute top-5 right-5 flex flex-col gap-[3px]">
+          <span className="block h-[3px] w-[22px] rounded-full bg-gradient-to-r from-[#162E51] to-[#FEAE00]" />
+          <span className="block h-[3px] w-[34px] rounded-full bg-gradient-to-r from-[#162E51] to-[#FEAE00]" />
+          <span className="block h-[3px] w-[16px] rounded-full bg-gradient-to-r from-[#162E51] to-[#FEAE00]" />
+        </div>
+
+        <div className="relative">
+          <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-bold text-[#FEAE00] mb-2">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FEAE00]" />
+            DM Auto • {t('cab_nav_home')}
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#18181B] leading-tight">
+            {t('r9_hello')} <span className="text-[#162E51]">{name}!</span>
+          </h1>
+          <p className="text-sm text-[#71717A] mt-2 max-w-xl">
+            {t('adm_browse_our_catalog_and_choose_your_dream_car')}
+          </p>
+        </div>
       </motion.div>
 
+      {/* ── "Active orders" empty state — brand-styled ──────────────── */}
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white border border-[#E4E4E7] rounded-2xl p-8 text-center"
+        transition={{ duration: 0.45, delay: 0.08, ease: [0.2, 0.7, 0.2, 1] }}
+        className="relative overflow-hidden bg-white border border-[#E4E4E7] rounded-2xl p-8 text-center"
       >
-        <div className="w-16 h-16 bg-[#F4F4F5] rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Car size={32} className="text-[#71717A]" />
+        {/* Vertical amber left-edge stripe (mirrors the active sidebar pill) */}
+        <span className="absolute left-0 top-6 bottom-6 w-[3px] rounded-r-full bg-gradient-to-b from-[#FEAE00] to-[#FFEA43]" />
+
+        <div className="relative">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 bg-[rgba(22,46,81,0.08)] ring-1 ring-[rgba(22,46,81,0.16)]">
+            <Car size={32} className="text-[#162E51]" />
+          </div>
+          <h2 className="text-lg font-semibold text-[#18181B]">{t('adm_no_active_orders_yet')}</h2>
+          <p className="text-sm text-[#71717A] mt-2 mb-6 max-w-md mx-auto">
+            {t('adm_browse_our_catalog_and_choose_your_dream_car')}
+          </p>
+          <Link
+            to="/#deals-budget-filter"
+            className="dm-cta-primary inline-flex items-center gap-2 bg-[#18181B] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#27272A]"
+          >
+            <Car size={18} weight="fill" />
+            {t('adm_view_car') || 'Find a car'}
+            <ArrowRight size={16} />
+          </Link>
         </div>
-        <h2 className="text-lg font-semibold text-[#18181B]">{t('adm_no_active_orders_yet')}</h2>
-        <p className="text-sm text-[#71717A] mt-2 mb-6">
-          {t('adm_browse_our_catalog_and_choose_your_dream_car')}
-        </p>
-        <Link
-          to="/#deals-budget-filter"
-          className="inline-flex items-center gap-2 bg-[#18181B] text-white px-6 py-3 rounded-xl font-medium hover:bg-[#27272A]"
-        >
-          <Car size={18} />
-          {t('adm_view_car') || 'Find a car'}
-        </Link>
+      </motion.div>
+
+      {/* ── Quick-access tiles (cabinet navigation shortcuts) ───────── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, delay: 0.16, ease: [0.2, 0.7, 0.2, 1] }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      >
+        {[
+          { to: `/cabinet/${customerId}/favorites`, icon: Heart, labelKey: 'cab_nav_favorites', accent: '#A13A3A' },
+          { to: `/cabinet/${customerId}/compare`, icon: Scales, labelKey: 'cab_nav_comparison', accent: '#162E51' },
+          { to: `/cabinet/${customerId}/notifications`, icon: Bell, labelKey: 'cab_nav_notifications', accent: '#FEAE00' },
+          { to: `/cabinet/${customerId}/profile`, icon: User, labelKey: 'cab_nav_profile', accent: '#51606D' },
+        ].map((tile) => {
+          const Icon = tile.icon;
+          return (
+            <Link
+              key={tile.to}
+              to={tile.to}
+              className="dm-card-hover group bg-white border border-[#E4E4E7] rounded-2xl p-4 flex items-center gap-3"
+              data-testid={`quick-${tile.labelKey}`}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-colors"
+                style={{ backgroundColor: `${tile.accent}1A` }}
+              >
+                <Icon size={20} weight="duotone" style={{ color: tile.accent }} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-[#18181B] truncate">{t(tile.labelKey)}</div>
+                <div className="text-[11px] uppercase tracking-[0.12em] text-[#71717A] mt-0.5 group-hover:text-[#162E51] transition-colors">
+                  Open →
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </motion.div>
     </div>
   );

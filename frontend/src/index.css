@@ -559,70 +559,93 @@ select.input option, .custom-select option { background: white; color: #18181B; 
 
 
 /* ==========================================================================
-   CUSTOMER CABINET — DARK THEME OVERRIDES
-   Activated by wrapping the cabinet in <div className="cabinet-scope" data-theme="dark">.
-   Light theme remains the default, completely untouched.
-   Every rule below is scoped to .cabinet-scope[data-theme="dark"], so nothing
-   outside the cabinet is affected.
+   CUSTOMER CABINET — DM AUTO BRAND THEME (beige + navy + amber)
+   --------------------------------------------------------------------------
+   Activated by wrapping the cabinet in
+       <div className="cabinet-scope" data-theme="dark">
+   (the data-theme attribute is a historical name; what we render now is the
+   DM Auto brand-light palette derived from the public landing page: warm
+   paper #F5F0E8, oxide-navy #162E51 primary, amber #FEAE00 accent stripes).
+   Every rule below is scoped to .cabinet-scope[data-theme="dark"], so the
+   public site and admin remain untouched.
    ========================================================================== */
 
 .cabinet-scope {
   /* Smooth theme transition for hero surfaces (keeps interactions snappy for text) */
   transition: background-color 180ms ease;
+  --dm-paper:        #F5F0E8;   /* page background */
+  --dm-paper-2:      #F3EEE7;
+  --dm-surface:      #FFFDFC;   /* card surface */
+  --dm-surface-2:    #FFFFFF;
+  --dm-line-soft:    #E6DED4;
+  --dm-line:         #D8D0C6;
+  --dm-line-strong:  #B8C0CA;
+  --dm-ink:          #17202A;   /* primary text */
+  --dm-ink-2:        #51606D;   /* secondary text */
+  --dm-ink-3:        #6E7C88;   /* muted text */
+  --dm-navy:         #162E51;   /* primary brand */
+  --dm-navy-2:       #1A4480;
+  --dm-navy-soft:    rgba(22, 46, 81, 0.10);
+  --dm-navy-soft-2:  rgba(22, 46, 81, 0.16);
+  --dm-amber:        #FEAE00;   /* accent stripes / highlights */
+  --dm-amber-2:      #FFEA43;
+  --dm-amber-hover:  #FFBF2D;
+  --dm-amber-soft:   rgba(254, 174, 0, 0.14);
+  --dm-red:          #A13A3A;
+  --dm-success:      #2F6B4F;
+  --dm-warning:      #B46A20;
 }
 
 .cabinet-scope[data-theme="dark"] {
-  color-scheme: dark;
-  background-color: #0A0A09;
-  color: #F4F4F5;
+  color-scheme: light;
+  background-color: var(--dm-paper);
+  color: var(--dm-ink);
+  font-family: 'Mazzard', 'Mazzard H', 'Mazzard M', system-ui, -apple-system, sans-serif;
 }
 
 /* --- Page + section surfaces ---------------------------------------------- */
 .cabinet-scope[data-theme="dark"] .bg-\[\#F8F8F8\],
 .cabinet-scope[data-theme="dark"] .bg-\[\#FAFAFA\] {
-  background-color: #0A0A09 !important;
+  background-color: var(--dm-paper) !important;
 }
 
 .cabinet-scope[data-theme="dark"] .bg-white {
-  background-color: #17171A !important;
+  background-color: var(--dm-surface) !important;
 }
 
 .cabinet-scope[data-theme="dark"] .bg-zinc-50 {
-  background-color: #141416 !important;
+  background-color: var(--dm-paper-2) !important;
 }
 
 .cabinet-scope[data-theme="dark"] .bg-zinc-100,
 .cabinet-scope[data-theme="dark"] .bg-\[\#F4F4F5\] {
-  background-color: #222227 !important;
+  background-color: var(--dm-paper-2) !important;
 }
 
 /* --- Text -----------------------------------------------------------------
-   NB: we do NOT blanket-flip .text-[#18181B] → white because many components
-   use that same class as the **dark-text** on a bright amber button
-   (e.g. bg-[#FEAE00] text-[#18181B] for the "Browse catalog" CTA).
-   Instead: flip to white ONLY when the element sits on a light/dark surface
-   (not on an amber/warning bg). We achieve this with two rules:
-     1) Default flip for any .text-[#18181B]  → white-ish  (F4F4F5)
-     2) Override inside amber/yellow/warning backgrounds → keep dark  (#18181B)
+   The cabinet pages use admin/light tokens (.text-[#18181B] for body etc.).
+   In the DM Auto brand theme we keep dark text on the warm paper bg.
+   Special-cases:
+     • amber/yellow PILLS (status badges) keep their dark text.
+     • elements INSIDE the navy active pill switch to cream (text-inverse).
 --------------------------------------------------------------------------- */
 .cabinet-scope[data-theme="dark"] .text-\[\#18181B\] {
-  color: #F4F4F5 !important;
+  color: var(--dm-ink) !important;
 }
 .cabinet-scope[data-theme="dark"] .text-\[\#27272A\] {
-  color: #E4E4E7 !important;
+  color: var(--dm-ink) !important;
 }
 .cabinet-scope[data-theme="dark"] .text-\[\#71717A\],
 .cabinet-scope[data-theme="dark"] .text-zinc-500,
 .cabinet-scope[data-theme="dark"] .text-slate-600 {
-  color: #A1A1AA !important;
+  color: var(--dm-ink-3) !important;
 }
 .cabinet-scope[data-theme="dark"] .text-\[\#A1A1AA\],
 .cabinet-scope[data-theme="dark"] .text-zinc-700 {
-  color: #D4D4D8 !important;
+  color: var(--dm-ink-2) !important;
 }
 
-/* Keep .text-[#18181B] truly dark when placed INSIDE an amber bg container
-   (primary CTAs like "Browse catalog", "Pay now", status pills, etc.). */
+/* Amber pill / button text — kept dark on yellow background */
 .cabinet-scope[data-theme="dark"] .bg-\[\#FEAE00\] .text-\[\#18181B\],
 .cabinet-scope[data-theme="dark"] .bg-\[\#FEAE00\].text-\[\#18181B\],
 .cabinet-scope[data-theme="dark"] .bg-amber-100 .text-\[\#18181B\],
@@ -630,64 +653,71 @@ select.input option, .custom-select option { background: white; color: #18181B; 
 .cabinet-scope[data-theme="dark"] .bg-amber-500 .text-\[\#18181B\],
 .cabinet-scope[data-theme="dark"] .bg-yellow-100 .text-\[\#18181B\],
 .cabinet-scope[data-theme="dark"] .bg-yellow-400 .text-\[\#18181B\] {
-  color: #18181B !important;
+  color: var(--dm-ink) !important;
 }
-/* And the same for white text used as icon color on bright amber CTAs — keep
-   it dark so it stays readable (the flip from light theme was hurting us). */
 .cabinet-scope[data-theme="dark"] .bg-\[\#FEAE00\] .text-white,
 .cabinet-scope[data-theme="dark"] .bg-\[\#FEAE00\] svg {
-  color: #18181B !important;
+  color: var(--dm-ink) !important;
 }
 
 /* --- Borders -------------------------------------------------------------- */
 .cabinet-scope[data-theme="dark"] .border-\[\#E4E4E7\],
 .cabinet-scope[data-theme="dark"] .border-zinc-200,
 .cabinet-scope[data-theme="dark"] .border-zinc-100 {
-  border-color: #27272A !important;
+  border-color: var(--dm-line-soft) !important;
 }
 .cabinet-scope[data-theme="dark"] .border-\[\#F4F4F5\] {
-  border-color: #222227 !important;
+  border-color: var(--dm-line-soft) !important;
 }
 .cabinet-scope[data-theme="dark"] .divide-\[\#E4E4E7\] > :not([hidden]) ~ :not([hidden]),
 .cabinet-scope[data-theme="dark"] .divide-zinc-200 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #27272A !important;
+  border-color: var(--dm-line-soft) !important;
 }
 
-/* --- Brand-black surfaces (sidebar item, avatar, buttons) -----------------
-   In light theme `bg-[#18181B]` is a "dark card / dark button" (e.g. the
-   manager card, active sidebar pill). In dark theme we keep it DARK — just
-   one shade lighter than the page bg so it still stands out, and we preserve
-   its white text (no color flip). This prevents the "inverted / all-yellow"
-   look the user reported.
+/* --- Brand-navy surfaces (active sidebar pill, manager card, avatar, CTAs) ---
+   In light theme `bg-[#18181B]` is the "dark card / dark button" pattern.
+   In the brand theme we map it to OXIDE NAVY #162E51 with cream text — this
+   is exactly what the public landing uses for primary CTAs.
 --------------------------------------------------------------------------- */
 .cabinet-scope[data-theme="dark"] .bg-\[\#18181B\] {
-  background-color: #26262A !important;
-  color: #F4F4F5 !important;
-  border-color: #34343A !important;
+  background-color: var(--dm-navy) !important;
+  color: #F6F2EA !important;
+  border-color: var(--dm-navy) !important;
 }
 .cabinet-scope[data-theme="dark"] .bg-\[\#18181B\]:hover {
-  background-color: #2E2E33 !important;
+  background-color: var(--dm-navy-2) !important;
 }
-/* Active navigation item — give it an amber accent via border/ring, not a fill,
-   so it still pops in dark mode without the awful white-on-yellow text. */
+.cabinet-scope[data-theme="dark"] .bg-\[\#27272A\] {
+  background-color: var(--dm-navy-2) !important;
+  color: #F6F2EA !important;
+}
+.cabinet-scope[data-theme="dark"] .hover\:bg-\[\#27272A\]:hover {
+  background-color: var(--dm-navy-2) !important;
+}
+
+/* Active navigation item — give it an amber-stripe accent so it pops on the
+   beige sidebar without losing the navy fill (echoes the homepage "stripes"). */
 .cabinet-scope[data-theme="dark"] a.bg-\[\#18181B\],
 .cabinet-scope[data-theme="dark"] button.bg-\[\#18181B\] {
-  background-color: #26262A !important;
-  box-shadow: inset 0 0 0 1px rgba(254, 174, 0, 0.45) !important;
+  background-color: var(--dm-navy) !important;
+  color: #F6F2EA !important;
+  box-shadow:
+    inset 4px 0 0 0 var(--dm-amber),
+    0 10px 24px -16px rgba(22, 46, 81, 0.45) !important;
+  position: relative;
 }
 .cabinet-scope[data-theme="dark"] a.bg-\[\#18181B\]:hover,
 .cabinet-scope[data-theme="dark"] button.bg-\[\#18181B\]:hover {
-  background-color: #2E2E33 !important;
-  box-shadow: inset 0 0 0 1px rgba(254, 174, 0, 0.65) !important;
+  background-color: var(--dm-navy-2) !important;
+  box-shadow:
+    inset 4px 0 0 0 var(--dm-amber),
+    0 10px 24px -10px rgba(22, 46, 81, 0.55) !important;
 }
 
 /* --- Hover states --------------------------------------------------------- */
 .cabinet-scope[data-theme="dark"] .hover\:bg-\[\#F4F4F5\]:hover,
 .cabinet-scope[data-theme="dark"] .hover\:bg-zinc-100:hover,
 .cabinet-scope[data-theme="dark"] .hover\:bg-zinc-50:hover,
-/* Phase B3.1 — catch the remaining off-white hover tints used by
-   WatchlistPage / ComparePage / CustomerCabinet shipments table /
-   any future page so hover NEVER flips a black card to a white card. */
 .cabinet-scope[data-theme="dark"] .hover\:bg-\[\#FAFAFA\]:hover,
 .cabinet-scope[data-theme="dark"] .hover\:bg-\[\#F9FAFB\]:hover,
 .cabinet-scope[data-theme="dark"] .hover\:bg-\[\#F8F8F8\]:hover,
@@ -697,155 +727,136 @@ select.input option, .custom-select option { background: white; color: #18181B; 
 .cabinet-scope[data-theme="dark"] .hover\:bg-neutral-100:hover,
 .cabinet-scope[data-theme="dark"] .hover\:bg-slate-50:hover,
 .cabinet-scope[data-theme="dark"] .hover\:bg-slate-100:hover {
-  background-color: #1E1E22 !important;
-  color: #F4F4F5 !important;
+  background-color: var(--dm-navy-soft) !important;
+  color: var(--dm-ink) !important;
 }
-/* And nuke any "hover:bg-white" (solid or alpha-suffixed) — these surface
-   as a glaring white panel on dark backgrounds and were the visible bug. */
 .cabinet-scope[data-theme="dark"] .hover\:bg-white:hover {
-  background-color: #1E1E22 !important;
-  color: #F4F4F5 !important;
+  background-color: var(--dm-surface-2) !important;
+  color: var(--dm-ink) !important;
 }
-/* Translucent white overlays (e.g. icon buttons next to the manager card
-   in the sidebar) are intentional — keep them readable on dark. */
 .cabinet-scope[data-theme="dark"] .hover\:bg-white\/50:hover {
-  background-color: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.55) !important;
 }
 .cabinet-scope[data-theme="dark"] .hover\:text-\[\#18181B\]:hover {
-  color: #F4F4F5 !important;
+  color: var(--dm-navy) !important;
 }
 
-/* --- Coloured status bubbles (keep tint but darken surface) ----------------
-   *-50 are the LIGHTEST pastel tints (used for stat tiles, summary pills,
-   page-section banners). In dark mode they MUST be subtle translucent tints,
-   otherwise they punch through as glaring pale rectangles. */
+/* --- Coloured status bubbles — keep semantic but tuned to brand palette --- */
 .cabinet-scope[data-theme="dark"] .bg-red-50,
-.cabinet-scope[data-theme="dark"] .bg-rose-50 { background-color: rgba(239, 68, 68, 0.10) !important; border-color: rgba(239, 68, 68, 0.28) !important; }
+.cabinet-scope[data-theme="dark"] .bg-rose-50 { background-color: rgba(161, 58, 58, 0.08) !important; border-color: rgba(161, 58, 58, 0.22) !important; }
 .cabinet-scope[data-theme="dark"] .bg-amber-50,
 .cabinet-scope[data-theme="dark"] .bg-orange-50,
-.cabinet-scope[data-theme="dark"] .bg-yellow-50 { background-color: rgba(254, 174, 0, 0.10) !important; border-color: rgba(254, 174, 0, 0.28) !important; }
+.cabinet-scope[data-theme="dark"] .bg-yellow-50 { background-color: var(--dm-amber-soft) !important; border-color: rgba(254, 174, 0, 0.30) !important; }
 .cabinet-scope[data-theme="dark"] .bg-green-50,
 .cabinet-scope[data-theme="dark"] .bg-emerald-50,
-.cabinet-scope[data-theme="dark"] .bg-teal-50 { background-color: rgba(16, 185, 129, 0.10) !important; border-color: rgba(16, 185, 129, 0.28) !important; }
+.cabinet-scope[data-theme="dark"] .bg-teal-50 { background-color: rgba(47, 107, 79, 0.10) !important; border-color: rgba(47, 107, 79, 0.28) !important; }
 .cabinet-scope[data-theme="dark"] .bg-blue-50,
 .cabinet-scope[data-theme="dark"] .bg-sky-50,
 .cabinet-scope[data-theme="dark"] .bg-cyan-50,
-.cabinet-scope[data-theme="dark"] .bg-indigo-50 { background-color: rgba(59, 130, 246, 0.10) !important; border-color: rgba(59, 130, 246, 0.28) !important; }
+.cabinet-scope[data-theme="dark"] .bg-indigo-50 { background-color: var(--dm-navy-soft) !important; border-color: rgba(22, 46, 81, 0.22) !important; }
 .cabinet-scope[data-theme="dark"] .bg-purple-50,
 .cabinet-scope[data-theme="dark"] .bg-violet-50,
 .cabinet-scope[data-theme="dark"] .bg-fuchsia-50,
-.cabinet-scope[data-theme="dark"] .bg-pink-50 { background-color: rgba(168, 85, 247, 0.12) !important; border-color: rgba(168, 85, 247, 0.30) !important; }
+.cabinet-scope[data-theme="dark"] .bg-pink-50 { background-color: rgba(168, 85, 247, 0.10) !important; border-color: rgba(168, 85, 247, 0.25) !important; }
 
-/* --- Status pills (bg-*-100 / text-*-700) — the "ready / Оплачено / Очікує"
-   badges the user flagged as illegible. In light theme they are pastel bg +
-   dark text. In dark theme we need translucent colored bg + bright text. */
-.cabinet-scope[data-theme="dark"] .bg-amber-100 { background-color: rgba(254, 174, 0, 0.18) !important; border-color: rgba(254, 174, 0, 0.35) !important; }
-.cabinet-scope[data-theme="dark"] .bg-amber-200 { background-color: rgba(254, 174, 0, 0.22) !important; }
+/* --- Status pills (bg-*-100 / text-*-700) --- */
+.cabinet-scope[data-theme="dark"] .bg-amber-100 { background-color: rgba(254, 174, 0, 0.20) !important; border-color: rgba(254, 174, 0, 0.40) !important; }
+.cabinet-scope[data-theme="dark"] .bg-amber-200 { background-color: rgba(254, 174, 0, 0.28) !important; }
 .cabinet-scope[data-theme="dark"] .bg-emerald-100,
-.cabinet-scope[data-theme="dark"] .bg-green-100 { background-color: rgba(16, 185, 129, 0.18) !important; border-color: rgba(16, 185, 129, 0.35) !important; }
+.cabinet-scope[data-theme="dark"] .bg-green-100 { background-color: rgba(47, 107, 79, 0.16) !important; border-color: rgba(47, 107, 79, 0.32) !important; }
 .cabinet-scope[data-theme="dark"] .bg-red-100,
-.cabinet-scope[data-theme="dark"] .bg-rose-100 { background-color: rgba(239, 68, 68, 0.18) !important; border-color: rgba(239, 68, 68, 0.40) !important; }
+.cabinet-scope[data-theme="dark"] .bg-rose-100 { background-color: rgba(161, 58, 58, 0.14) !important; border-color: rgba(161, 58, 58, 0.32) !important; }
 .cabinet-scope[data-theme="dark"] .bg-blue-100,
-.cabinet-scope[data-theme="dark"] .bg-indigo-100 { background-color: rgba(59, 130, 246, 0.18) !important; border-color: rgba(59, 130, 246, 0.40) !important; }
+.cabinet-scope[data-theme="dark"] .bg-indigo-100 { background-color: var(--dm-navy-soft-2) !important; border-color: rgba(22, 46, 81, 0.35) !important; }
 .cabinet-scope[data-theme="dark"] .bg-purple-100,
-.cabinet-scope[data-theme="dark"] .bg-violet-100 { background-color: rgba(168, 85, 247, 0.20) !important; border-color: rgba(168, 85, 247, 0.40) !important; }
-.cabinet-scope[data-theme="dark"] .bg-yellow-100 { background-color: rgba(234, 179, 8, 0.20) !important; border-color: rgba(234, 179, 8, 0.40) !important; }
+.cabinet-scope[data-theme="dark"] .bg-violet-100 { background-color: rgba(168, 85, 247, 0.16) !important; border-color: rgba(168, 85, 247, 0.32) !important; }
+.cabinet-scope[data-theme="dark"] .bg-yellow-100 { background-color: rgba(234, 179, 8, 0.18) !important; border-color: rgba(234, 179, 8, 0.35) !important; }
 
 .cabinet-scope[data-theme="dark"] .text-red-500,
 .cabinet-scope[data-theme="dark"] .text-red-600,
-.cabinet-scope[data-theme="dark"] .text-red-700 { color: #FCA5A5 !important; }
+.cabinet-scope[data-theme="dark"] .text-red-700 { color: var(--dm-red) !important; }
 .cabinet-scope[data-theme="dark"] .text-amber-600,
 .cabinet-scope[data-theme="dark"] .text-amber-700,
-.cabinet-scope[data-theme="dark"] .text-amber-800 { color: #FCD34D !important; }
+.cabinet-scope[data-theme="dark"] .text-amber-800 { color: var(--dm-warning) !important; }
 .cabinet-scope[data-theme="dark"] .text-yellow-700,
-.cabinet-scope[data-theme="dark"] .text-yellow-800 { color: #FDE68A !important; }
+.cabinet-scope[data-theme="dark"] .text-yellow-800 { color: #8A5A00 !important; }
 .cabinet-scope[data-theme="dark"] .text-blue-600,
 .cabinet-scope[data-theme="dark"] .text-blue-700,
-.cabinet-scope[data-theme="dark"] .text-blue-800 { color: #93C5FD !important; }
+.cabinet-scope[data-theme="dark"] .text-blue-800 { color: var(--dm-navy) !important; }
 .cabinet-scope[data-theme="dark"] .text-green-600,
 .cabinet-scope[data-theme="dark"] .text-green-700,
 .cabinet-scope[data-theme="dark"] .text-emerald-600,
 .cabinet-scope[data-theme="dark"] .text-emerald-700,
-.cabinet-scope[data-theme="dark"] .text-emerald-800 { color: #6EE7B7 !important; }
+.cabinet-scope[data-theme="dark"] .text-emerald-800 { color: var(--dm-success) !important; }
 .cabinet-scope[data-theme="dark"] .text-purple-600,
 .cabinet-scope[data-theme="dark"] .text-purple-700,
 .cabinet-scope[data-theme="dark"] .text-violet-600,
-.cabinet-scope[data-theme="dark"] .text-violet-700 { color: #C4B5FD !important; }
+.cabinet-scope[data-theme="dark"] .text-violet-700 { color: #6B3FAA !important; }
 .cabinet-scope[data-theme="dark"] .text-indigo-600,
-.cabinet-scope[data-theme="dark"] .text-indigo-700 { color: #A5B4FC !important; }
+.cabinet-scope[data-theme="dark"] .text-indigo-700 { color: var(--dm-navy) !important; }
 
-/* Solid coloured filled buttons / step indicators (bg-emerald-500, bg-amber-500
-   etc. — used in the shipping progress steps and in "Оплатити" buttons).
-   Slightly darken/desaturate them so they're not too glowing on black. */
+/* Solid coloured filled buttons / step indicators */
 .cabinet-scope[data-theme="dark"] .bg-emerald-500,
-.cabinet-scope[data-theme="dark"] .bg-emerald-600 { background-color: #059669 !important; }
+.cabinet-scope[data-theme="dark"] .bg-emerald-600 { background-color: var(--dm-success) !important; }
 .cabinet-scope[data-theme="dark"] .bg-emerald-700:hover,
-.cabinet-scope[data-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #047857 !important; }
-.cabinet-scope[data-theme="dark"] .bg-blue-500 { background-color: #2563EB !important; }
-.cabinet-scope[data-theme="dark"] .bg-amber-500 { background-color: #D97706 !important; }
+.cabinet-scope[data-theme="dark"] .hover\:bg-emerald-700:hover { background-color: #245339 !important; }
+.cabinet-scope[data-theme="dark"] .bg-blue-500 { background-color: var(--dm-navy) !important; }
+.cabinet-scope[data-theme="dark"] .bg-amber-500 { background-color: var(--dm-amber) !important; }
 .cabinet-scope[data-theme="dark"] .bg-red-500,
-.cabinet-scope[data-theme="dark"] .bg-red-600 { background-color: #DC2626 !important; }
+.cabinet-scope[data-theme="dark"] .bg-red-600 { background-color: var(--dm-red) !important; }
 
-/* Inactive/track colors (bg-zinc-200 as "not yet completed" step) */
-.cabinet-scope[data-theme="dark"] .bg-zinc-200 { background-color: #2A2A2E !important; }
-.cabinet-scope[data-theme="dark"] .text-zinc-400 { color: #71717A !important; }
-.cabinet-scope[data-theme="dark"] .text-zinc-900 { color: #F4F4F5 !important; }
+/* Inactive/track colors */
+.cabinet-scope[data-theme="dark"] .bg-zinc-200 { background-color: var(--dm-line) !important; }
+.cabinet-scope[data-theme="dark"] .text-zinc-400 { color: var(--dm-ink-3) !important; }
+.cabinet-scope[data-theme="dark"] .text-zinc-900 { color: var(--dm-ink) !important; }
 
-/* Gradient background cards (Оплачено / Очікують summary, Packages section) —
-   the user flagged the "Оплачено 2" pale mint card. Use subtle dark gradients. */
-.cabinet-scope[data-theme="dark"] .from-emerald-50 { --tw-gradient-from: rgba(16,185,129,0.12) !important; }
-.cabinet-scope[data-theme="dark"] .to-emerald-100 { --tw-gradient-to: rgba(16,185,129,0.22) !important; }
-.cabinet-scope[data-theme="dark"] .from-amber-50   { --tw-gradient-from: rgba(254,174,0,0.12) !important; }
-.cabinet-scope[data-theme="dark"] .to-amber-100    { --tw-gradient-to: rgba(254,174,0,0.22) !important; }
-.cabinet-scope[data-theme="dark"] .from-blue-50    { --tw-gradient-from: rgba(59,130,246,0.10) !important; }
-.cabinet-scope[data-theme="dark"] .to-indigo-50    { --tw-gradient-to: rgba(99,102,241,0.14) !important; }
-.cabinet-scope[data-theme="dark"] .border-blue-200 { border-color: rgba(59,130,246,0.35) !important; }
-.cabinet-scope[data-theme="dark"] .border-amber-200 { border-color: rgba(254,174,0,0.35) !important; }
-.cabinet-scope[data-theme="dark"] .border-emerald-200 { border-color: rgba(16,185,129,0.35) !important; }
+/* Gradient cards */
+.cabinet-scope[data-theme="dark"] .from-emerald-50 { --tw-gradient-from: rgba(47, 107, 79, 0.10) !important; }
+.cabinet-scope[data-theme="dark"] .to-emerald-100 { --tw-gradient-to: rgba(47, 107, 79, 0.18) !important; }
+.cabinet-scope[data-theme="dark"] .from-amber-50   { --tw-gradient-from: rgba(254, 174, 0, 0.12) !important; }
+.cabinet-scope[data-theme="dark"] .to-amber-100    { --tw-gradient-to: rgba(254, 174, 0, 0.22) !important; }
+.cabinet-scope[data-theme="dark"] .from-blue-50    { --tw-gradient-from: rgba(22, 46, 81, 0.08) !important; }
+.cabinet-scope[data-theme="dark"] .to-indigo-50    { --tw-gradient-to: rgba(22, 46, 81, 0.14) !important; }
+.cabinet-scope[data-theme="dark"] .border-blue-200 { border-color: rgba(22, 46, 81, 0.30) !important; }
+.cabinet-scope[data-theme="dark"] .border-amber-200 { border-color: rgba(254, 174, 0, 0.32) !important; }
+.cabinet-scope[data-theme="dark"] .border-emerald-200 { border-color: rgba(47, 107, 79, 0.32) !important; }
 
-/* Semi-transparent bubble chips used inside dark cards (bg-white/10, /20) —
-   since we now keep bg-[#18181B] dark (not amber), the semi-white bubbles
-   work as intended, but we bump opacity a touch for better visibility. */
-.cabinet-scope[data-theme="dark"] .bg-white\/10 { background-color: rgba(255, 255, 255, 0.08) !important; }
-.cabinet-scope[data-theme="dark"] .hover\:bg-white\/20:hover { background-color: rgba(255, 255, 255, 0.16) !important; }
-.cabinet-scope[data-theme="dark"] .text-white\/60 { color: rgba(255, 255, 255, 0.65) !important; }
-.cabinet-scope[data-theme="dark"] .text-white\/70 { color: rgba(255, 255, 255, 0.78) !important; }
+/* Semi-transparent overlays inside navy cards */
+.cabinet-scope[data-theme="dark"] .bg-white\/10 { background-color: rgba(255, 253, 252, 0.10) !important; }
+.cabinet-scope[data-theme="dark"] .hover\:bg-white\/20:hover { background-color: rgba(255, 253, 252, 0.18) !important; }
+.cabinet-scope[data-theme="dark"] .text-white\/60 { color: rgba(246, 242, 234, 0.72) !important; }
+.cabinet-scope[data-theme="dark"] .text-white\/70 { color: rgba(246, 242, 234, 0.82) !important; }
 
-.cabinet-scope[data-theme="dark"] .hover\:bg-red-50:hover { background-color: rgba(239, 68, 68, 0.18) !important; }
+.cabinet-scope[data-theme="dark"] .hover\:bg-red-50:hover { background-color: rgba(161, 58, 58, 0.12) !important; }
 
 /* --- Inputs / selects ----------------------------------------------------- */
 .cabinet-scope[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .cabinet-scope[data-theme="dark"] select,
 .cabinet-scope[data-theme="dark"] textarea {
-  background-color: #0F0F11 !important;
-  color: #F4F4F5 !important;
-  border-color: #2C2C30 !important;
+  background-color: var(--dm-surface) !important;
+  color: var(--dm-ink) !important;
+  border-color: var(--dm-line) !important;
 }
 .cabinet-scope[data-theme="dark"] input::placeholder,
 .cabinet-scope[data-theme="dark"] textarea::placeholder {
-  color: #6B6B73 !important;
+  color: var(--dm-ink-3) !important;
 }
 .cabinet-scope[data-theme="dark"] input:focus,
 .cabinet-scope[data-theme="dark"] select:focus,
 .cabinet-scope[data-theme="dark"] textarea:focus {
-  border-color: #FEAE00 !important;
-  box-shadow: 0 0 0 3px rgba(254, 174, 0, 0.22) !important;
+  border-color: var(--dm-navy) !important;
+  box-shadow: 0 0 0 3px rgba(22, 46, 81, 0.18) !important;
 }
 
-/* --- Shadows become subtle in dark ---------------------------------------- */
+/* --- Shadows — subtle warm on beige --------------------------------------- */
 .cabinet-scope[data-theme="dark"] .shadow,
 .cabinet-scope[data-theme="dark"] .shadow-sm,
 .cabinet-scope[data-theme="dark"] .shadow-md,
 .cabinet-scope[data-theme="dark"] .shadow-lg {
-  box-shadow: 0 10px 28px -12px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 10px 28px -12px rgba(22, 46, 81, 0.18) !important;
 }
 
-/* --- Progress bars / fill strips ------------------------------------------
-   Previously we added a ring around every amber element — that produced the
-   "double outline around pills" the user complained about. Removed. Only the
-   Tailwind .bg-[#FEAE00] is styled where the component itself asks for it. */
-
-/* --- Theme toggle pill ---------------------------------------------------- */
+/* --- Theme toggle pill (kept for backwards compat) ----------------------- */
 .cabinet-theme-toggle {
   --pill-bg: #F4F4F5;
   --pill-indicator: #FFFFFF;
@@ -861,11 +872,11 @@ select.input option, .custom-select option { background: white; color: #18181B; 
   user-select: none;
 }
 .cabinet-scope[data-theme="dark"] .cabinet-theme-toggle {
-  --pill-bg: #141416;
-  --pill-indicator: #FEAE00;
-  --pill-text: #A1A1AA;
-  --pill-active-text: #0A0A09;
-  border-color: #2C2C30;
+  --pill-bg: var(--dm-paper-2);
+  --pill-indicator: var(--dm-navy);
+  --pill-text: var(--dm-ink-3);
+  --pill-active-text: #F6F2EA;
+  border-color: var(--dm-line);
 }
 .cabinet-theme-toggle button {
   width: 28px;
@@ -884,78 +895,194 @@ select.input option, .custom-select option { background: white; color: #18181B; 
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 .cabinet-scope[data-theme="dark"] .cabinet-theme-toggle button[data-active="true"] {
-  box-shadow: 0 0 0 1px rgba(254, 174, 0, 0.3), 0 4px 14px -4px rgba(254, 174, 0, 0.6);
+  box-shadow: 0 0 0 1px rgba(22, 46, 81, 0.30), 0 4px 14px -4px rgba(22, 46, 81, 0.45);
 }
 
-/* --- Toast / notification defaults ---------------------------------------- */
-.cabinet-scope[data-theme="dark"] .border-yellow-200 { border-color: rgba(254, 174, 0, 0.30) !important; }
+/* --- Toast / notification defaults --------------------------------------- */
+.cabinet-scope[data-theme="dark"] .border-yellow-200 { border-color: rgba(254, 174, 0, 0.32) !important; }
 
-/* Avatar circle — it's typically a small circle with user initials or icon
-   on a dark surface. Keep it dark-surfaced with an amber ring accent. */
+/* Avatar (dark surface with initial) — keep navy with amber stripe accent */
 .cabinet-scope[data-theme="dark"] .bg-\[\#18181B\].text-white {
-  background-color: #26262A !important;
-  color: #F4F4F5 !important;
-  box-shadow: inset 0 0 0 1px rgba(254, 174, 0, 0.35);
+  background-color: var(--dm-navy) !important;
+  color: #F6F2EA !important;
+  box-shadow: inset 0 -3px 0 0 var(--dm-amber);
 }
 
-/* ---------- Sonner toast (DM Auto dark/amber palette) ---------- */
+/* ---------- Sonner toast (DM Auto BRAND palette) ---------- */
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] {
-  background: #1D1D1B !important;
-  color: #FFFFFF !important;
-  border: 1px solid #3a3a38 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55) !important;
+  background: #FFFDFC !important;
+  color: #17202A !important;
+  border: 1px solid #D8D0C6 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 48px rgba(22, 46, 81, 0.18) !important;
 }
-
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='success'] {
-  border-color: rgba(254, 174, 0, 0.45) !important;
+  border-color: rgba(47, 107, 79, 0.45) !important;
 }
-[data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='success'] [data-icon] {
-  color: #FEAE00 !important;
-}
+[data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='success'] [data-icon],
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='success'] [data-icon] svg {
-  color: #FEAE00 !important;
+  color: #2F6B4F !important;
 }
-
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='error'] {
-  border-color: rgba(239, 68, 68, 0.55) !important;
+  border-color: rgba(161, 58, 58, 0.55) !important;
 }
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='error'] [data-icon] svg {
-  color: #f87171 !important;
+  color: #A13A3A !important;
 }
-
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='info'] {
-  border-color: rgba(254, 174, 0, 0.35) !important;
+  border-color: rgba(22, 46, 81, 0.35) !important;
 }
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast][data-type='info'] [data-icon] svg {
-  color: #FEAE00 !important;
+  color: #162E51 !important;
 }
-
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] [data-title] {
-  color: #FFFFFF !important;
+  color: #17202A !important;
   font-weight: 600 !important;
 }
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] [data-description] {
-  color: #B0B0B0 !important;
+  color: #51606D !important;
 }
-
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] [data-close-button] {
-  background: #2a2a28 !important;
-  border-color: #3a3a38 !important;
-  color: #B0B0B0 !important;
+  background: #F3EEE7 !important;
+  border-color: #D8D0C6 !important;
+  color: #51606D !important;
 }
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] [data-close-button]:hover {
-  color: #FEAE00 !important;
-  border-color: #FEAE00 !important;
+  color: #162E51 !important;
+  border-color: #162E51 !important;
 }
-
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] [data-button] {
-  background: #FEAE00 !important;
-  color: #0A0A09 !important;
+  background: #162E51 !important;
+  color: #F6F2EA !important;
   font-weight: 600 !important;
 }
 [data-sonner-toaster][data-theme='dark'] [data-sonner-toast] [data-button]:hover {
-  background: #FFBF2D !important;
+  background: #1A4480 !important;
+}
+
+/* ============================================================
+ * DM AUTO CABINET — Signature visual flourishes
+ * Echo the public landing page: amber stripes, navy CTAs,
+ * subtle motion. Implemented as utility classes used by
+ * the redesigned CustomerCabinet sidebar + dashboard.
+ * ============================================================ */
+
+/* Amber stripe accent (vertical, used on cards & sidebar header) */
+.cabinet-scope[data-theme="dark"] .dm-stripe-amber {
+  position: relative;
+}
+.cabinet-scope[data-theme="dark"] .dm-stripe-amber::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 16px; bottom: 16px;
+  width: 3px;
+  background: linear-gradient(180deg, var(--dm-amber) 0%, var(--dm-amber-2) 100%);
+  border-radius: 0 4px 4px 0;
+}
+
+/* Horizontal amber rule used under headings (matches homepage) */
+.cabinet-scope[data-theme="dark"] .dm-rule-amber {
+  position: relative;
+  padding-bottom: 12px;
+}
+.cabinet-scope[data-theme="dark"] .dm-rule-amber::after {
+  content: '';
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 56px; height: 3px;
+  background: linear-gradient(90deg, var(--dm-amber), var(--dm-amber-2));
+  border-radius: 999px;
+}
+
+/* Brand "deal stripes" (3 stacked navy/amber bars) used as decorative motif */
+.cabinet-scope[data-theme="dark"] .dm-bars {
+  display: inline-flex; flex-direction: column; gap: 3px; vertical-align: middle;
+}
+.cabinet-scope[data-theme="dark"] .dm-bars span {
+  display: block; height: 3px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--dm-navy), var(--dm-amber));
+}
+.cabinet-scope[data-theme="dark"] .dm-bars span:nth-child(1) { width: 22px; }
+.cabinet-scope[data-theme="dark"] .dm-bars span:nth-child(2) { width: 34px; }
+.cabinet-scope[data-theme="dark"] .dm-bars span:nth-child(3) { width: 16px; }
+
+/* Navy "primary" CTA used inside cabinet (override admin bg-[#18181B]) */
+.cabinet-scope[data-theme="dark"] .dm-cta-primary {
+  background: var(--dm-navy) !important;
+  color: #F6F2EA !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 28px -16px rgba(22, 46, 81, 0.55);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+.cabinet-scope[data-theme="dark"] .dm-cta-primary:hover {
+  background: var(--dm-navy-2) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px -16px rgba(22, 46, 81, 0.65);
+}
+
+/* Amber accent CTA */
+.cabinet-scope[data-theme="dark"] .dm-cta-amber {
+  background: var(--dm-amber) !important;
+  color: var(--dm-ink) !important;
+  border-radius: 12px !important;
+  font-weight: 600;
+}
+.cabinet-scope[data-theme="dark"] .dm-cta-amber:hover {
+  background: var(--dm-amber-hover) !important;
+}
+
+/* Animated reveal — used on cabinet dashboard cards */
+@keyframes dm-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.cabinet-scope[data-theme="dark"] .dm-fade-up {
+  animation: dm-fade-up 480ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* Card with subtle hover lift (used for nav cards / stat tiles) */
+.cabinet-scope[data-theme="dark"] .dm-card-hover {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+.cabinet-scope[data-theme="dark"] .dm-card-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(22, 46, 81, 0.25) !important;
+  box-shadow: 0 18px 36px -16px rgba(22, 46, 81, 0.22);
+}
+
+/* Decorative pattern: faint diagonal stripes background */
+.cabinet-scope[data-theme="dark"] .dm-pattern-stripes {
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      rgba(22, 46, 81, 0.04) 0,
+      rgba(22, 46, 81, 0.04) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+}
+
+/* Hero card gradient (paper → subtle warm white) like the landing hero */
+.cabinet-scope[data-theme="dark"] .dm-hero-card {
+  background:
+    linear-gradient(135deg, rgba(254, 174, 0, 0.06) 0%, transparent 60%),
+    linear-gradient(180deg, #FFFDFC 0%, #FAF6EF 100%);
+  border: 1px solid var(--dm-line-soft);
+}
+
+/* "Avatar" with navy fill + amber underline (used in sidebar header) */
+.cabinet-scope[data-theme="dark"] .dm-avatar {
+  background: var(--dm-navy) !important;
+  color: #F6F2EA !important;
+  position: relative;
+  overflow: hidden;
+}
+.cabinet-scope[data-theme="dark"] .dm-avatar::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--dm-amber), var(--dm-amber-2));
 }
 
 
