@@ -1,18 +1,18 @@
 [
   {
-    "content": "Mobile Hero: унифицировать с web",
-    "status": "completed"
+    "content": "Hero: все 3 строки заголовка в один размер (как на вебе)",
+    "status": "in_progress"
   },
   {
-    "content": "MobileFooter: убрать VAT/ID/PM AUTO GROUP/O.la, три legal-ссылки в одну строку",
-    "status": "completed"
+    "content": "Hero: заменить default-картинку на ту, что используется на вебе (Unsplash gray car)",
+    "status": "pending"
   },
   {
-    "content": "MobileTopDeals: переключить на /api/public/cars (curated) — ссылки ведут на /cars/{slug}",
-    "status": "completed"
+    "content": "Search-блок: переделать на логику десктопа — brands/models из API, single Year-дропдаун (не native select), submit → openGetInTouch с source=home_hero_select",
+    "status": "pending"
   },
   {
-    "content": "Финальный визуальный тест (hero RU → 4 KPI, footer → одна строка, карточка авто → SingleCarPage)",
-    "status": "completed"
+    "content": "Визуальная проверка",
+    "status": "pending"
   }
 ]

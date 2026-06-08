@@ -331,8 +331,7 @@ export default function MobileHomePage() {
   const [openFaq, setOpenFaq] = useState(null);
   const [filterBrand, setFilterBrand] = useState('');
   const [filterModel, setFilterModel] = useState('');
-  const [yearFrom, setYearFrom] = useState('');
-  const [yearTo, setYearTo] = useState('');
+  const [filterYear, setFilterYear] = useState('');
   const [reviewIdx, setReviewIdx] = useState(0);
   const [beforeAfterIdx, setBeforeAfterIdx] = useState(0);
   const { lang, changeLang } = useLang();
@@ -386,13 +385,16 @@ export default function MobileHomePage() {
   const heroL3 = fmtLang(hero[`title_line3_${langKey}`] || hero.title_line3, langKey) || fallbackHero.title_line3;
   // Hero image priority on mobile:
   //   1) hero.image_url_mobile  (admin-uploaded mobile-format variant)
-  //   2) hero.image_url         (only when admin opted into web/mobile sync)
-  //   3) /mobile/image-103@2x.png  (Figma default)
+  //   2) hero.image_url         (when admin opted into web/mobile sync)
+  //   3) desktop ORIGINAL_HERO image (Unsplash gray car) — same as web,
+  //      so the redesigned mobile hero stays visually consistent with
+  //      what the user sees on desktop.
   const heroImageUrl = (() => {
     const m = hero.image_url_mobile;
     if (m) return m;
     if (hero.sync_mobile_with_web && hero.image_url) return hero.image_url;
-    return '/mobile/image-103@2x.png';
+    if (hero.image_url) return hero.image_url;
+    return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=72';
   })();
   const kpi1 = fmtLang(hero[`kpi1_${langKey}`] || hero.kpi1, langKey) || fallbackHero.kpi1;
   const kpi2 = fmtLang(hero[`kpi2_${langKey}`] || hero.kpi2, langKey) || fallbackHero.kpi2;
@@ -450,14 +452,35 @@ export default function MobileHomePage() {
   const viberLabel = telegramLabel;
   const viberUrl = telegramUrl;
 
-  // Helpers
+  // Submit handler — mirrors desktop FrameComponent18.onFind:
+  // we don't navigate to /catalog (the public catalog has been retired
+  // in favour of admin-curated leads). Instead, build a human-readable
+  // "Brand · Model · Year" preference string and open the GetInTouch
+  // modal so the user only fills in contact details. Lead is recorded
+  // via POST /api/public/lead-requests with source=home_hero_select.
+  const isRu = (lang || 'en').toLowerCase().startsWith('ru');
   const onFindCar = () => {
-    const params = new URLSearchParams();
-    if (filterBrand) params.set('make', filterBrand);
-    if (filterModel) params.set('model', filterModel);
-    if (yearFrom) params.set('year_min', yearFrom);
-    if (yearTo) params.set('year_max', yearTo);
-    window.location.href = `/catalog${params.toString() ? `?${params}` : ''}`;
+    const parts = [];
+    if (filterBrand) parts.push(filterBrand);
+    const modelClean = filterModel && filterModel !== 'Any Model' && filterModel !== 'Все модели'
+      ? filterModel : '';
+    if (modelClean) parts.push(modelClean);
+    const yearClean = filterYear && filterYear !== 'Any Year' && filterYear !== 'Все годы' && filterYear !== 'Любой год'
+      ? filterYear : '';
+    if (yearClean) parts.push(yearClean);
+    const carPref = parts.join(' · ');
+    const title = isRu
+      ? carPref ? `Подобрать: ${carPref}` : 'Подбор автомобиля'
+      : carPref ? `Sourcing: ${carPref}` : 'Find me a car';
+    const subtitle = isRu
+      ? 'Оставьте контакты — менеджер свяжется и подтвердит детали по выбранному авто. Перевыбирать ничего не нужно.'
+      : 'Leave your contact — our manager will reach out and confirm the details for the car you picked. No need to re-enter anything.';
+    openGetInTouch?.({
+      source: 'home_hero_select',
+      car_preference: carPref,
+      title,
+      subtitle,
+    });
   };
 
   return (
@@ -499,8 +522,8 @@ export default function MobileHomePage() {
           {heroEyebrow}
         </div>
 
-        {/* Title block — three centered lines (40 / 32 / 40 px) */}
-        <div className="mt-3 text-center">
+        {/* Title block — three lines, ALL SAME SIZE (matches desktop hero) */}
+        <div className="mt-3 text-center" style={{ padding: '0 12px' }}>
           <AnimatedHeading
             as="div"
             text={heroL1}
@@ -508,9 +531,9 @@ export default function MobileHomePage() {
             style={{
               fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontWeight: 700,
-              fontSize: 40,
-              lineHeight: '40px',
-              letterSpacing: '0',
+              fontSize: 'clamp(34px, 9.5vw, 40px)',
+              lineHeight: 1.02,
+              letterSpacing: '-0.01em',
             }}
           />
           <AnimatedHeading
@@ -521,10 +544,10 @@ export default function MobileHomePage() {
             style={{
               fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontWeight: 700,
-              fontSize: 32,
-              lineHeight: '32px',
-              marginTop: 4,
-              letterSpacing: '0',
+              fontSize: 'clamp(34px, 9.5vw, 40px)',
+              lineHeight: 1.02,
+              marginTop: 6,
+              letterSpacing: '-0.01em',
             }}
           />
           <AnimatedHeading
@@ -535,10 +558,10 @@ export default function MobileHomePage() {
             style={{
               fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontWeight: 700,
-              fontSize: 40,
-              lineHeight: '40px',
-              marginTop: 4,
-              letterSpacing: '0',
+              fontSize: 'clamp(34px, 9.5vw, 40px)',
+              lineHeight: 1.02,
+              marginTop: 6,
+              letterSpacing: '-0.01em',
             }}
           />
         </div>
@@ -586,27 +609,49 @@ export default function MobileHomePage() {
         </div>
 
         {/* Hero image — FULL WIDTH within the viewport (no horizontal padding). */}
-        <div className="mt-7 w-full" style={{ lineHeight: 0, overflow: 'hidden' }}>
+        <div
+          className="mt-7 w-full"
+          style={{
+            lineHeight: 0,
+            overflow: 'hidden',
+            position: 'relative',
+            background: '#F5F0E8',
+          }}
+        >
           <img
             src={heroImageUrl?.startsWith('/') ? heroImageUrl : optimizeImage(heroImageUrl, ImageSize.hero)}
             alt=""
             style={{
               width: '100%',
               maxWidth: '100%',
-              aspectRatio: '361 / 326',
+              aspectRatio: '16 / 10',
               objectFit: 'cover',
+              objectPosition: 'center',
               display: 'block',
               border: 0,
               outline: 0,
-              clipPath: 'inset(0 0 5px 0)',
-              marginBottom: -5,
+              clipPath: 'inset(0 0 1px 0)',
+              marginBottom: -1,
               backgroundColor: '#F5F0E8',
             }}
             loading="eager"
             decoding="async"
             fetchPriority="high"
             onError={(e) => {
-              e.currentTarget.src = '/mobile/image-103@2x.png';
+              e.currentTarget.src = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1600&q=72';
+            }}
+          />
+          {/* Soft beige scrim at bottom — keeps hero edge cohesive with the cream search section below */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: '38%',
+              background: 'linear-gradient(180deg, rgba(245,240,232,0) 0%, rgba(245,240,232,0.55) 60%, rgba(245,240,232,0.95) 100%)',
+              pointerEvents: 'none',
             }}
           />
         </div>
@@ -623,12 +668,11 @@ export default function MobileHomePage() {
         setFilterBrand={setFilterBrand}
         filterModel={filterModel}
         setFilterModel={setFilterModel}
-        yearFrom={yearFrom}
-        setYearFrom={setYearFrom}
-        yearTo={yearTo}
-        setYearTo={setYearTo}
+        filterYear={filterYear}
+        setFilterYear={setFilterYear}
         onFindCar={onFindCar}
         t={t}
+        isRu={isRu}
       />
 
       {/* OLD BLOCKS REMOVED (Phase 4 — mobile cleanup per user feedback):
@@ -2192,24 +2236,31 @@ function MobileTopVehicleDeals({ t }) {
 
 
 /* ─────────────────────────────────────────────────────────────────────── */
-/* MobileCarSearch                                                         */
-/* Real dropdown filter (mirrors the web HeroFilter behaviour):            */
-/*   • Brand:  click → searchable list of CAR_BRANDS.                      */
-/*   • Model:  DISABLED until brand is picked, then lists models for it.   */
-/*   • Year From / Year To: native <select> 1990 → currentYear+1.          */
-/*   • Section sized 360 × 621 (Figma): card never overlaps hero above.    */
+/* MobileCarSearch — unified with desktop FrameComponent18 search logic.   */
+/*   • Brand:   live data from `/api/public/brands` (overlaid on the       */
+/*              static CAR_BRANDS list so the user can still pick brands   */
+/*              we haven't sourced yet — lead-capture flow).               */
+/*   • Model:   loads via `/api/public/models?brand=<name>` whenever the   */
+/*              brand changes. Disabled until a brand is picked.           */
+/*   • Year:    single picker (Any year + 1990..now+1). Custom dropdown,   */
+/*              NOT a native <select> — looks identical to brand / model.  */
+/*   • Submit:  fires the parent `onFindCar` which opens GetInTouch with   */
+/*              `source: "home_hero_select"` (mirrors desktop logic).      */
 /* ─────────────────────────────────────────────────────────────────────── */
 function MobileCarSearch({
   filterBrand, setFilterBrand,
   filterModel, setFilterModel,
-  yearFrom, setYearFrom,
-  yearTo, setYearTo,
+  filterYear, setFilterYear,
   onFindCar,
   t,
+  isRu,
 }) {
   const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
   const [openWhich, setOpenWhich] = useState(null);
   const [brandQuery, setBrandQuery] = useState('');
+  const [modelQuery, setModelQuery] = useState('');
+  const [brandsData, setBrandsData] = useState(null);
+  const [modelsData, setModelsData] = useState(null);
   const rootRef = useRef(null);
 
   const currentYear = new Date().getFullYear();
@@ -2219,16 +2270,76 @@ function MobileCarSearch({
     return out;
   }, [currentYear]);
 
+  // Load real brand availability from the catalog backend.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await axios.get(`${API}/api/public/brands`);
+        if (cancelled) return;
+        if (Array.isArray(r?.data?.data)) setBrandsData(r.data.data);
+      } catch { /* keep null → static fallback */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Load models for the currently picked brand.
+  useEffect(() => {
+    let cancelled = false;
+    if (!filterBrand) {
+      // Reset previously loaded models on next tick (avoid set-state-in-effect lint)
+      const id = setTimeout(() => { if (!cancelled) setModelsData(null); }, 0);
+      return () => { cancelled = true; clearTimeout(id); };
+    }
+    (async () => {
+      try {
+        const r = await axios.get(`${API}/api/public/models`, {
+          params: { brand: filterBrand },
+        });
+        if (cancelled) return;
+        if (Array.isArray(r?.data?.data)) setModelsData(r.data.data);
+      } catch { if (!cancelled) setModelsData(null); }
+    })();
+    return () => { cancelled = true; };
+  }, [filterBrand]);
+
+  const ANY_BRAND_LABEL = isRu ? 'Все бренды' : 'Any Brand';
+  const ANY_MODEL_LABEL = isRu ? 'Все модели' : 'Any Model';
+  const ANY_YEAR_LABEL  = isRu ? 'Любой год' : 'Any Year';
+
   const brandOptions = useMemo(() => {
+    const countByName = new Map();
+    (brandsData || []).forEach((b) => { if (b?.name) countByName.set(b.name.toLowerCase(), b); });
+    const fromStatic = CAR_BRANDS.map((n) => ({
+      name: n,
+      count: countByName.get(n.toLowerCase())?.count ?? null,
+    }));
+    const known = new Set(CAR_BRANDS.map((n) => n.toLowerCase()));
+    const extras = (brandsData || [])
+      .filter((b) => b?.name && !known.has(b.name.toLowerCase()))
+      .map((b) => ({ name: b.name, count: b.count ?? null }));
+    const all = [...fromStatic, ...extras];
     const q = brandQuery.trim().toLowerCase();
-    const list = q ? CAR_BRANDS.filter((b) => b.toLowerCase().includes(q)) : CAR_BRANDS;
-    return [t?.allBrands || 'Any Brand', ...list];
-  }, [brandQuery, t]);
+    return q ? all.filter((b) => b.name.toLowerCase().includes(q)) : all;
+  }, [brandsData, brandQuery]);
 
   const modelOptions = useMemo(() => {
     if (!filterBrand) return [];
-    return [t?.allModels || 'Any model', ...(MODELS_BY_BRAND[filterBrand] || [])];
-  }, [filterBrand, t]);
+    const staticList = MODELS_BY_BRAND[filterBrand] || [];
+    const countByName = new Map();
+    (modelsData || []).forEach((m) => { if (m?.name) countByName.set(m.name.toLowerCase(), m); });
+    const fromStatic = staticList.map((n) => ({
+      name: n,
+      count: countByName.get(n.toLowerCase())?.count ?? null,
+    }));
+    const known = new Set(staticList.map((n) => n.toLowerCase()));
+    const extras = (modelsData || [])
+      .filter((m) => m?.name && !known.has(m.name.toLowerCase()))
+      .map((m) => ({ name: m.name, count: m.count ?? null }));
+    const all = [...fromStatic, ...extras];
+    const q = modelQuery.trim().toLowerCase();
+    return q ? all.filter((m) => m.name.toLowerCase().includes(q)) : all;
+  }, [filterBrand, modelsData, modelQuery]);
 
   useEffect(() => {
     const onDoc = (e) => {
@@ -2236,7 +2347,7 @@ function MobileCarSearch({
       if (!rootRef.current.contains(e.target)) setOpenWhich(null);
     };
     document.addEventListener('mousedown', onDoc);
-    document.addEventListener('touchstart', onDoc);
+    document.addEventListener('touchstart', onDoc, { passive: true });
     return () => {
       document.removeEventListener('mousedown', onDoc);
       document.removeEventListener('touchstart', onDoc);
@@ -2244,31 +2355,48 @@ function MobileCarSearch({
   }, []);
 
   const pickBrand = (b) => {
-    setFilterBrand(b === 'Any Brand' || b === (t?.allBrands || '') ? '' : b);
+    setFilterBrand(b === ANY_BRAND_LABEL ? '' : b);
     setFilterModel('');
     setOpenWhich(null);
     setBrandQuery('');
   };
   const pickModel = (m) => {
-    setFilterModel(m === 'Any model' || m === (t?.allModels || '') ? '' : m);
+    setFilterModel(m === ANY_MODEL_LABEL ? '' : m);
+    setOpenWhich(null);
+    setModelQuery('');
+  };
+  const pickYear = (y) => {
+    setFilterYear(y === ANY_YEAR_LABEL ? '' : y);
     setOpenWhich(null);
   };
 
-  const fieldStyleBase = {
+  const fieldBase = {
     width: '100%',
-    height: 48,
+    height: 52,
     background: '#FFFFFF',
-    border: '1px solid #D8D0C6',
-    borderRadius: 8,
+    border: '1.5px solid #E6DED4',
+    borderRadius: 10,
     color: '#162E51',
     fontFamily: FONT,
     fontSize: 14,
-    padding: '0 14px',
+    padding: '0 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     cursor: 'pointer',
     boxSizing: 'border-box',
+    transition: 'border-color 160ms ease, box-shadow 160ms ease',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    color: '#162E51',
+    fontFamily: FONT,
+    fontSize: 12,
+    fontWeight: 700,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: '0.10em',
   };
 
   return (
@@ -2276,136 +2404,174 @@ function MobileCarSearch({
       ref={rootRef}
       data-testid="mobile-car-search"
       className="flex justify-center"
-      style={{ minHeight: 621, paddingTop: 56, paddingBottom: 56, boxSizing: 'border-box' }}
+      style={{
+        background: '#F5F0E8',
+        paddingTop: 24,
+        paddingBottom: 48,
+        boxSizing: 'border-box',
+      }}
     >
-      <div style={{ width: 336, maxWidth: '100%' }}>     {/* 360 − 12 L − 12 R = 336 (user spec: 12 L/R) */}
+      <div style={{ width: '100%', maxWidth: 360, padding: '0 16px' }}>
         <h3
           className="text-center uppercase"
           style={{
             color: '#162E51',
             fontFamily: FONT,
-            fontWeight: 700,
-            fontSize: 24,
-            lineHeight: '28px',
-            letterSpacing: '0.04em',
-            marginBottom: 28,
+            fontWeight: 800,
+            fontSize: 22,
+            lineHeight: '26px',
+            letterSpacing: '0.02em',
+            margin: '0 0 22px',
           }}
         >
-          {t?.carSearch || 'Car Search'}
+          {t?.carSearch || (isRu ? 'Поиск автомобиля' : 'Car Search')}
         </h3>
 
         {/* BRAND */}
-        <label style={{ display: 'block', color: '#162E51', fontFamily: FONT, fontSize: 13, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          {t?.brand || 'Brand'}
-        </label>
-        <div style={{ position: 'relative', marginBottom: 16 }}>
+        <label style={labelStyle}>{t?.brand || (isRu ? 'Бренд' : 'Brand')}</label>
+        <div style={{ position: 'relative', marginBottom: 14 }}>
           <button
             type="button"
             data-testid="mobile-brand-trigger"
             onClick={() => setOpenWhich(openWhich === 'brand' ? null : 'brand')}
-            style={{ ...fieldStyleBase, borderColor: openWhich === 'brand' ? '#162E51' : '#D8D0C6' }}
+            style={{
+              ...fieldBase,
+              borderColor: openWhich === 'brand' ? '#162E51' : '#E6DED4',
+              boxShadow: openWhich === 'brand' ? '0 0 0 3px rgba(22, 46, 81, 0.10)' : 'none',
+            }}
           >
-            <span style={{ color: filterBrand ? '#162E51' : '#7a8699' }}>{filterBrand || (t?.allBrands || 'All brands')}</span>
+            <span style={{ color: filterBrand ? '#162E51' : '#7a8699', fontWeight: filterBrand ? 600 : 400 }}>
+              {filterBrand || ANY_BRAND_LABEL}
+            </span>
             <Caret open={openWhich === 'brand'} />
           </button>
 
           {openWhich === 'brand' && (
-            <div
-              data-testid="mobile-brand-panel"
-              style={{
-                position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                background: '#FFFFFF', border: '1px solid #162E51', borderRadius: 8,
-                zIndex: 60, maxHeight: 280, display: 'flex', flexDirection: 'column', overflow: 'hidden',
-                boxShadow: '0 12px 32px rgba(15, 30, 55, 0.18)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid #E6DED4' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" stroke="#7a8699" strokeWidth="1.6" />
-                  <path d="M20 20l-3.5-3.5" stroke="#7a8699" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-                <input
-                  data-testid="mobile-brand-search"
-                  type="text"
-                  value={brandQuery}
-                  onChange={(e) => setBrandQuery(e.target.value)}
-                  placeholder={t?.searchBrand || 'Search brand...'}
-                  style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#162E51', fontFamily: FONT, fontSize: 16 /* >=16px prevents iOS auto-zoom */ }}
+            <DropdownPanel testid="mobile-brand-panel">
+              <DropdownSearch
+                value={brandQuery}
+                onChange={setBrandQuery}
+                placeholder={t?.searchBrand || (isRu ? 'Поиск бренда…' : 'Search brand…')}
+                testid="mobile-brand-search"
+              />
+              <div style={{ overflowY: 'auto', maxHeight: 260 }}>
+                <DropdownOption
+                  label={ANY_BRAND_LABEL}
+                  onClick={() => pickBrand(ANY_BRAND_LABEL)}
+                  isAny
                 />
-              </div>
-              <div style={{ overflowY: 'auto', maxHeight: 230 }}>
                 {brandOptions.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    onClick={() => pickBrand(b)}
-                    data-testid={`mobile-brand-option-${b}`}
-                    style={{ display: 'block', width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', color: '#162E51', fontFamily: FONT, fontSize: 14, cursor: 'pointer' }}
-                  >
-                    {b}
-                  </button>
+                  <DropdownOption
+                    key={b.name}
+                    label={b.name}
+                    count={b.count}
+                    onClick={() => pickBrand(b.name)}
+                  />
                 ))}
-                {brandOptions.length === 1 && (
-                  <div style={{ padding: '12px 16px', color: '#7a8699', fontFamily: FONT, fontSize: 13 }}>{t?.noBrandsFound || 'No brands found'}</div>
+                {brandOptions.length === 0 && (
+                  <div style={{ padding: '12px 16px', color: '#7a8699', fontFamily: FONT, fontSize: 13 }}>
+                    {t?.noBrandsFound || (isRu ? 'Бренды не найдены' : 'No brands found')}
+                  </div>
                 )}
               </div>
-            </div>
+            </DropdownPanel>
           )}
         </div>
 
-        {/* MODEL (locked until brand selected) */}
-        <label style={{ display: 'block', color: filterBrand ? '#162E51' : '#7a8699', fontFamily: FONT, fontSize: 13, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          {t?.model || 'Model'}
+        {/* MODEL */}
+        <label style={{ ...labelStyle, color: filterBrand ? '#162E51' : '#9aa3b0' }}>
+          {t?.model || (isRu ? 'Модель' : 'Model')}
         </label>
-        <div style={{ position: 'relative', marginBottom: 16 }}>
+        <div style={{ position: 'relative', marginBottom: 14 }}>
           <button
             type="button"
             data-testid="mobile-model-trigger"
             disabled={!filterBrand}
             onClick={() => filterBrand && setOpenWhich(openWhich === 'model' ? null : 'model')}
             style={{
-              ...fieldStyleBase,
+              ...fieldBase,
               cursor: filterBrand ? 'pointer' : 'not-allowed',
-              opacity: filterBrand ? 1 : 0.5,
-              borderColor: openWhich === 'model' ? '#162E51' : '#D8D0C6',
+              opacity: filterBrand ? 1 : 0.55,
+              borderColor: openWhich === 'model' ? '#162E51' : '#E6DED4',
+              boxShadow: openWhich === 'model' ? '0 0 0 3px rgba(22, 46, 81, 0.10)' : 'none',
             }}
           >
-            <span style={{ color: filterModel ? '#162E51' : '#7a8699' }}>{filterModel || (t?.allModels || 'All models')}</span>
+            <span style={{ color: filterModel ? '#162E51' : '#7a8699', fontWeight: filterModel ? 600 : 400 }}>
+              {filterModel || ANY_MODEL_LABEL}
+            </span>
             <Caret open={openWhich === 'model'} />
           </button>
 
           {openWhich === 'model' && filterBrand && (
-            <div
-              data-testid="mobile-model-panel"
-              style={{
-                position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-                background: '#FFFFFF', border: '1px solid #162E51', borderRadius: 8,
-                zIndex: 60, maxHeight: 260, overflowY: 'auto',
-                boxShadow: '0 12px 32px rgba(15, 30, 55, 0.18)',
-              }}
-            >
-              {modelOptions.map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => pickModel(m)}
-                  data-testid={`mobile-model-option-${m}`}
-                  style={{ display: 'block', width: '100%', textAlign: 'left', padding: '12px 16px', background: 'transparent', border: 'none', color: '#162E51', fontFamily: FONT, fontSize: 14, cursor: 'pointer' }}
-                >
-                  {m}
-                </button>
-              ))}
-            </div>
+            <DropdownPanel testid="mobile-model-panel">
+              <DropdownSearch
+                value={modelQuery}
+                onChange={setModelQuery}
+                placeholder={isRu ? 'Поиск модели…' : 'Search model…'}
+                testid="mobile-model-search"
+              />
+              <div style={{ overflowY: 'auto', maxHeight: 260 }}>
+                <DropdownOption
+                  label={ANY_MODEL_LABEL}
+                  onClick={() => pickModel(ANY_MODEL_LABEL)}
+                  isAny
+                />
+                {modelOptions.map((m) => (
+                  <DropdownOption
+                    key={m.name}
+                    label={m.name}
+                    count={m.count}
+                    onClick={() => pickModel(m.name)}
+                  />
+                ))}
+                {modelOptions.length === 0 && (
+                  <div style={{ padding: '12px 16px', color: '#7a8699', fontFamily: FONT, fontSize: 13 }}>
+                    {isRu ? 'Модели не найдены' : 'No models found'}
+                  </div>
+                )}
+              </div>
+            </DropdownPanel>
           )}
         </div>
 
-        {/* YEAR FROM */}
-        <label style={{ display: 'block', color: '#162E51', fontFamily: FONT, fontSize: 13, fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t?.year || 'Year'}</label>
-        <YearSelect value={yearFrom} onChange={setYearFrom} placeholder={t?.fromShort || 'From'} years={YEARS} testid="mobile-year-from" />
+        {/* YEAR */}
+        <label style={labelStyle}>{t?.year || (isRu ? 'Год' : 'Year')}</label>
+        <div style={{ position: 'relative', marginBottom: 22 }}>
+          <button
+            type="button"
+            data-testid="mobile-year-trigger"
+            onClick={() => setOpenWhich(openWhich === 'year' ? null : 'year')}
+            style={{
+              ...fieldBase,
+              borderColor: openWhich === 'year' ? '#162E51' : '#E6DED4',
+              boxShadow: openWhich === 'year' ? '0 0 0 3px rgba(22, 46, 81, 0.10)' : 'none',
+            }}
+          >
+            <span style={{ color: filterYear ? '#162E51' : '#7a8699', fontWeight: filterYear ? 600 : 400 }}>
+              {filterYear || ANY_YEAR_LABEL}
+            </span>
+            <Caret open={openWhich === 'year'} />
+          </button>
 
-        {/* YEAR TO */}
-        <label style={{ display: 'block', color: '#162E51', fontFamily: FONT, fontSize: 13, fontWeight: 600, marginBottom: 8, marginTop: 16, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t?.year || 'Year'}</label>
-        <YearSelect value={yearTo} onChange={setYearTo} placeholder={t?.toShort || 'To'} years={YEARS} testid="mobile-year-to" />
+          {openWhich === 'year' && (
+            <DropdownPanel testid="mobile-year-panel">
+              <div style={{ overflowY: 'auto', maxHeight: 280 }}>
+                <DropdownOption
+                  label={ANY_YEAR_LABEL}
+                  onClick={() => pickYear(ANY_YEAR_LABEL)}
+                  isAny
+                />
+                {YEARS.map((y) => (
+                  <DropdownOption
+                    key={y}
+                    label={y}
+                    onClick={() => pickYear(y)}
+                  />
+                ))}
+              </div>
+            </DropdownPanel>
+          )}
+        </div>
 
         {/* FIND A CAR */}
         <button
@@ -2413,17 +2579,111 @@ function MobileCarSearch({
           onClick={onFindCar}
           data-testid="mobile-find-car"
           style={{
-            display: 'block', width: '100%', height: 52, marginTop: 28,
-            background: '#FEAE00', color: '#0c1d3d', border: 'none', borderRadius: 8,
-            fontFamily: FONT, fontWeight: 700, fontSize: 14, letterSpacing: '0.10em',
+            display: 'flex', width: '100%', minHeight: 54,
+            alignItems: 'center', justifyContent: 'center', gap: 10,
+            background: '#FEAE00', color: '#0c1d3d', border: 'none', borderRadius: 12,
+            fontFamily: FONT, fontWeight: 800, fontSize: 14, letterSpacing: '0.10em',
             textTransform: 'uppercase', cursor: 'pointer',
-            boxShadow: '0 8px 24px rgba(254, 174, 0, 0.30)',
+            boxShadow: '0 14px 30px rgba(254, 174, 0, 0.32)',
+            transition: 'transform 150ms ease, filter 150ms ease',
           }}
+          onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.05)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
         >
-          {t?.findCar || 'Find a car'}
+          <span>{t?.findCar || (isRu ? 'Подобрать автомобиль' : 'Find a car')}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </button>
       </div>
     </section>
+  );
+}
+
+function DropdownPanel({ children, testid }) {
+  return (
+    <div
+      data-testid={testid}
+      style={{
+        position: 'absolute',
+        top: 'calc(100% + 6px)',
+        left: 0,
+        right: 0,
+        background: '#FFFFFF',
+        border: '1.5px solid #162E51',
+        borderRadius: 12,
+        zIndex: 60,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+        boxShadow: '0 18px 38px rgba(15, 30, 55, 0.22)',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function DropdownSearch({ value, onChange, placeholder, testid }) {
+  const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', borderBottom: '1px solid #E6DED4' }}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke="#7a8699" strokeWidth="1.6" />
+        <path d="M20 20l-3.5-3.5" stroke="#7a8699" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+      <input
+        data-testid={testid}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={{
+          flex: 1, background: 'transparent', border: 'none', outline: 'none',
+          color: '#162E51', fontFamily: FONT, fontSize: 16,
+        }}
+      />
+    </div>
+  );
+}
+
+function DropdownOption({ label, count, onClick, isAny }) {
+  const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid={`mobile-option-${label}`}
+      style={{
+        display: 'flex',
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 10,
+        textAlign: 'left',
+        padding: '12px 16px',
+        background: 'transparent',
+        border: 'none',
+        borderTop: '1px solid #F5F0E8',
+        color: isAny ? '#7a8699' : '#162E51',
+        fontFamily: FONT,
+        fontSize: 14,
+        fontWeight: isAny ? 500 : 600,
+        cursor: 'pointer',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = '#FAF6EE'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+    >
+      <span>{label}</span>
+      {Number.isFinite(Number(count)) && Number(count) > 0 ? (
+        <span style={{
+          fontFamily: FONT, fontSize: 11, fontWeight: 700,
+          color: '#FEAE00', letterSpacing: '0.04em',
+        }}>
+          {count}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -2433,32 +2693,6 @@ function Caret({ open }) {
          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 150ms' }}>
       <path d="M6 9l6 6 6-6" stroke="#162E51" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
-  );
-}
-
-function YearSelect({ value, onChange, placeholder, years, testid }) {
-  const FONT = "'Helvetica Neue', Helvetica, Arial, sans-serif";
-  return (
-    <div style={{ position: 'relative' }}>
-      <select
-        data-testid={testid}
-        value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
-        style={{
-          width: '100%', height: 48, background: '#FFFFFF', border: '1px solid #D8D0C6',
-          borderRadius: 8, color: value ? '#162E51' : '#7a8699',
-          fontFamily: FONT, fontSize: 16 /* >=16px prevents iOS auto-zoom on select */, padding: '0 36px 0 14px',
-          appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
-          cursor: 'pointer', boxSizing: 'border-box',
-        }}
-      >
-        <option value="">{placeholder}</option>
-        {years.map((y) => (<option key={y} value={y}>{y}</option>))}
-      </select>
-      <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-        <Caret open={false} />
-      </span>
-    </div>
   );
 }
 
