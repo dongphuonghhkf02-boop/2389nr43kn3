@@ -1,24 +1,9 @@
 /**
- * Compare Page (Customer Cabinet)
+ * Compare Page (Customer Cabinet) — DM Auto brand theme.
+ * /cabinet/:customerId/compare
  *
- * Path: /cabinet/:customerId/compare
- *
- * Unified marketplace-style comparison:
- *   • Each car is a single, self-contained card (photo → title → spec rows
- *     inside the same rounded border) — same visual language as Favorites.
- *   • Cards sit side-by-side; spec rows align horizontally so the user can
- *     compare values across cars without losing the "this car = this card"
- *     mental model.
- *   • Rows where every car has no value are dropped completely (no
- *     unnecessary "—" rows). When at least one car has the value, all cards
- *     render the row (the empty ones show "—" so the user understands "we
- *     know about this one, we don't know about the other").
- *   • Adding a third car is a tiny inline pill in the header (not a giant
- *     placeholder column) and links to the catalog so the user can pick a
- *     new vehicle.
- *   • Mobile: vertical pager (one card at a time).
+ * Полностью русифицирован, использует беж + navy + amber палитру.
  */
-
 import React, { useMemo, useState } from 'react';
 import {
   Scales,
@@ -40,6 +25,7 @@ import {
   CaretRight,
 } from '@phosphor-icons/react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useCompare } from '../../hooks/useCompare';
 
 /* ─────────────────────────── Helpers ─────────────────────────── */
@@ -53,19 +39,20 @@ const isEmptyVal = (v) =>
 const fmtMoney = (v, currency = 'USD') => {
   if (isEmptyVal(v) || Number.isNaN(Number(v))) return null;
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ru-RU', {
       style: 'currency',
       currency: currency || 'USD',
       maximumFractionDigits: 0,
     }).format(Number(v));
   } catch {
-    return `$${Number(v).toLocaleString()}`;
+    return `$${Number(v).toLocaleString('ru-RU')}`;
   }
 };
 
 const fmtMileage = (v, unit) => {
   if (isEmptyVal(v) || Number.isNaN(Number(v))) return null;
-  return `${Number(v).toLocaleString('en-US')} ${unit || 'mi'}`;
+  const unitLabel = (unit && String(unit).toLowerCase() === 'km') ? 'км' : 'миль';
+  return `${Number(v).toLocaleString('ru-RU')} ${unitLabel}`;
 };
 
 const fmtDate = (v) => {
@@ -73,7 +60,7 @@ const fmtDate = (v) => {
   try {
     const d = new Date(v);
     if (Number.isNaN(d.getTime())) return String(v);
-    return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
+    return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
   } catch {
     return String(v);
   }
@@ -83,113 +70,57 @@ const FALLBACK_IMG =
   'data:image/svg+xml;utf8,'
   + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320">'
-      + '<rect width="100%" height="100%" fill="#1B1B1F"/>'
-      + '<path d="M120 200 L200 130 L260 175 L320 145 L380 200 Z" fill="#27272A"/>'
-      + '<circle cx="240" cy="120" r="22" fill="#27272A"/>'
-      + '<text x="50%" y="86%" font-family="system-ui" font-size="20" fill="#52525B" text-anchor="middle">No photo</text>'
+      + '<rect width="100%" height="100%" fill="#F3EEE7"/>'
+      + '<path d="M120 200 L200 130 L260 175 L320 145 L380 200 Z" fill="#D8D0C6"/>'
+      + '<circle cx="240" cy="120" r="22" fill="#D8D0C6"/>'
+      + '<text x="50%" y="86%" font-family="system-ui" font-size="20" fill="#6E7C88" text-anchor="middle">Нет фото</text>'
       + '</svg>',
   );
 
 const dealStatusStyles = {
-  good_deal: { bg: 'bg-emerald-500/15', text: 'text-emerald-400', dot: 'bg-emerald-400' },
-  fair_deal: { bg: 'bg-amber-500/15',   text: 'text-amber-400',   dot: 'bg-amber-400' },
-  bad_deal:  { bg: 'bg-red-500/15',     text: 'text-red-400',     dot: 'bg-red-400' },
+  good_deal: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500', label: 'Выгодно' },
+  fair_deal: { bg: 'bg-amber-100',   text: 'text-amber-800',   dot: 'bg-amber-500',   label: 'Справедливо' },
+  bad_deal:  { bg: 'bg-red-100',     text: 'text-red-700',     dot: 'bg-red-500',     label: 'Невыгодно' },
 };
 
-/* Parameter rows (most → least important) */
 const ROW_DEFS = [
-  {
-    key: 'year', label: 'Year', icon: Calendar,
-    render: (v) => (v ? <span className="font-semibold">{v}</span> : null),
-  },
-  {
-    key: 'bodyType', label: 'Body type', icon: CarIcon,
-    render: (v) => (v ? <span className="capitalize">{String(v).toLowerCase()}</span> : null),
-  },
-  {
-    key: 'mileage', label: 'Mileage', icon: Gauge, compare: 'lowerBetter',
-    render: (v, item) => {
-      const m = fmtMileage(v, item.mileageUnit);
-      return m ? <span className="font-semibold">{m}</span> : null;
-    },
-  },
-  {
-    key: 'price', label: 'Price', icon: CurrencyDollar, compare: 'lowerBetter',
-    render: (v, item) => {
-      const m = fmtMoney(v, item.currency);
-      return m ? <span className="font-semibold text-[#FEAE00]">{m}</span> : null;
-    },
-  },
-  {
-    key: 'maxBid', label: 'Max bid', icon: TrendUp,
-    render: (v, item) => {
-      const m = fmtMoney(v, item.currency);
-      return m ? <span className="font-medium text-emerald-400">{m}</span> : null;
-    },
-  },
-  {
-    key: 'finalAllInPrice', label: 'All-in price', icon: CurrencyDollar, compare: 'lowerBetter',
-    render: (v, item) => fmtMoney(v, item.currency),
-  },
-  {
-    key: 'damage', label: 'Damage', icon: Warning,
-    render: (v) => v
-      ? <span className="capitalize text-red-300">{String(v).toLowerCase()}</span>
-      : null,
-  },
-  {
-    key: 'saleDate', label: 'Auction date', icon: Hammer,
-    render: (v) => {
-      const d = fmtDate(v);
-      return d ? <span>{d}</span> : null;
-    },
-  },
-  {
-    key: 'location', label: 'Location', icon: MapPin,
-    render: (v) => (v ? <span className="text-white/90">{v}</span> : null),
-  },
-  {
-    key: 'auctionName', label: 'Auction', icon: Hammer,
-    render: (v) => (v
-      ? <span className="uppercase tracking-wide text-xs font-semibold text-[#FEAE00]">{v}</span>
-      : null),
-  },
-  {
-    key: 'lotNumber', label: 'Lot #', icon: Hammer,
-    render: (v) => (v ? <span className="font-mono text-xs">{v}</span> : null),
-  },
-  {
-    key: 'drive', label: 'Drive', icon: CarIcon,
-    render: (v) => (v ? <span className="uppercase">{String(v)}</span> : null),
-  },
-  {
-    key: 'fuel', label: 'Fuel', icon: GasPump,
-    render: (v) => (v ? <span className="capitalize">{String(v).toLowerCase()}</span> : null),
-  },
-  {
-    key: 'transmission', label: 'Transmission', icon: Wrench,
-    render: (v) => (v ? <span className="capitalize">{String(v).toLowerCase()}</span> : null),
-  },
-  {
-    key: 'confidence', label: 'Confidence', icon: ShieldCheck,
-    render: (v) => (v != null
-      ? <span className="font-semibold">{Math.round(Number(v) * 100)}%</span>
-      : null),
-  },
-  {
-    key: 'dealStatus', label: 'Deal status', icon: TrendUp,
+  { key: 'year', label: 'Год', icon: Calendar,
+    render: (v) => (v ? <span className="font-semibold">{v}</span> : null) },
+  { key: 'bodyType', label: 'Кузов', icon: CarIcon,
+    render: (v) => (v ? <span className="capitalize">{String(v).toLowerCase()}</span> : null) },
+  { key: 'mileage', label: 'Пробег', icon: Gauge, compare: 'lowerBetter',
+    render: (v, item) => { const m = fmtMileage(v, item.mileageUnit); return m ? <span className="font-semibold">{m}</span> : null; } },
+  { key: 'price', label: 'Цена', icon: CurrencyDollar, compare: 'lowerBetter',
+    render: (v, item) => { const m = fmtMoney(v, item.currency); return m ? <span className="font-semibold text-[#162E51]">{m}</span> : null; } },
+  { key: 'finalAllInPrice', label: 'Итоговая цена', icon: CurrencyDollar, compare: 'lowerBetter',
+    render: (v, item) => fmtMoney(v, item.currency) },
+  { key: 'damage', label: 'Повреждения', icon: Warning,
+    render: (v) => v ? <span className="capitalize text-[#A13A3A]">{String(v).toLowerCase()}</span> : null },
+  { key: 'saleDate', label: 'Дата выставления', icon: Hammer,
+    render: (v) => { const d = fmtDate(v); return d ? <span>{d}</span> : null; } },
+  { key: 'location', label: 'Локация', icon: MapPin,
+    render: (v) => (v ? <span className="text-[#17202A]">{v}</span> : null) },
+  { key: 'lotNumber', label: 'Лот №', icon: Hammer,
+    render: (v) => (v ? <span className="font-mono text-xs">{v}</span> : null) },
+  { key: 'drive', label: 'Привод', icon: CarIcon,
+    render: (v) => (v ? <span className="uppercase">{String(v)}</span> : null) },
+  { key: 'fuel', label: 'Топливо', icon: GasPump,
+    render: (v) => (v ? <span className="capitalize">{String(v).toLowerCase()}</span> : null) },
+  { key: 'transmission', label: 'Коробка', icon: Wrench,
+    render: (v) => (v ? <span className="capitalize">{String(v).toLowerCase()}</span> : null) },
+  { key: 'confidence', label: 'Точность данных', icon: ShieldCheck,
+    render: (v) => (v != null ? <span className="font-semibold">{Math.round(Number(v) * 100)}%</span> : null) },
+  { key: 'dealStatus', label: 'Оценка сделки', icon: TrendUp,
     render: (v) => {
       if (!v) return null;
       const s = dealStatusStyles[v] || dealStatusStyles.fair_deal;
-      const label = v === 'good_deal' ? 'Good deal' : v === 'bad_deal' ? 'Bad deal' : 'Fair deal';
       return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${s.bg} ${s.text}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-          {label}
+          {s.label}
         </span>
       );
-    },
-  },
+    } },
 ];
 
 /* ─────────────────────────── Page ─────────────────────────── */
@@ -211,13 +142,11 @@ export default function ComparePage() {
     [resolved, items],
   );
 
-  /* Only keep rows where at least one car has a non-empty value */
   const visibleRows = useMemo(() => {
     if (data.length === 0) return [];
     return ROW_DEFS.filter((row) => data.some((item) => !isEmptyVal(item[row.key])));
   }, [data]);
 
-  /* Leader detection for "lowerBetter" rows (cheapest price, lowest mileage…) */
   const leaderByKey = useMemo(() => {
     const map = {};
     if (data.length < 2) return map;
@@ -233,50 +162,51 @@ export default function ComparePage() {
     return map;
   }, [data, visibleRows]);
 
-  /* Safe pager index */
   const safeMobileIdx = Math.min(mobileIdx, Math.max(0, data.length - 1));
-
-  /* ─── States ─── */
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20" data-testid="compare-loading">
-        <div className="w-8 h-8 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#162E51] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  /* Empty state */
   if (!count) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4" data-testid="compare-page">
         <CompareHeader count={0} onClear={null} onAddCar={null} />
-        <div className="rounded-3xl border border-dashed border-zinc-700 bg-[#0F0F11] p-10 md:p-16 text-center">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-[#FEAE00]/10 flex items-center justify-center mb-5">
-            <Scales size={32} weight="duotone" className="text-[#FEAE00]" />
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative overflow-hidden rounded-2xl border border-dashed border-[#D8D0C6] bg-white p-10 md:p-14 text-center"
+        >
+          <span className="absolute left-0 top-8 bottom-8 w-[3px] rounded-r-full bg-gradient-to-b from-[#FEAE00] to-[#FFEA43]" />
+          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-5 bg-[rgba(22,46,81,0.08)] ring-1 ring-[rgba(22,46,81,0.16)]">
+            <Scales size={32} weight="duotone" className="text-[#162E51]" />
           </div>
-          <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-            Nothing to compare yet
+          <h3 className="text-xl md:text-2xl font-bold text-[#18181B] mb-2">
+            Пока нечего сравнивать
           </h3>
-          <p className="text-zinc-400 mb-6 max-w-md mx-auto">
-            Pick at least two cars from our selection to see them side-by-side.
+          <p className="text-[#71717A] mb-6 max-w-md mx-auto">
+            Добавьте минимум два автомобиля из нашего каталога — здесь они покажутся бок-о-бок.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button
               onClick={() => navigate('/#deals-budget-filter')}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#FEAE00] text-[#18181B] font-semibold hover:bg-[#E89D00] transition-colors"
+              className="dm-cta-primary inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#18181B] text-white font-semibold"
               data-testid="compare-empty-open-catalog"
             >
-              <CarIcon size={18} weight="fill" /> Find a car
+              <CarIcon size={18} weight="fill" /> Подобрать автомобиль
             </button>
             <button
               onClick={() => navigate(customerId ? `/cabinet/${customerId}/favorites` : '/cabinet/favorites')}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-zinc-800 text-white hover:bg-zinc-700 transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-[#D8D0C6] text-[#162E51] hover:bg-[rgba(22,46,81,0.06)] font-semibold transition-colors"
             >
-              <Heart size={18} weight="fill" /> Open Favorites
+              <Heart size={18} weight="fill" /> Открыть избранное
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -285,41 +215,32 @@ export default function ComparePage() {
   const need2 = count === 1;
 
   return (
-    <div className="space-y-6" data-testid="compare-page">
-      <CompareHeader
-        count={count}
-        onClear={clear}
-        onAddCar={canAddMore ? () => navigate('/#deals-budget-filter') : null}
-      />
+    <div className="space-y-4" data-testid="compare-page">
+      <CompareHeader count={count} onClear={clear} onAddCar={canAddMore ? () => navigate('/#deals-budget-filter') : null} />
 
-      {/* Need-at-least-2 banner — only when exactly 1 car is in the list */}
       {need2 && (
-        <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 md:p-5 flex items-start gap-3">
-          <div className="shrink-0 w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center">
-            <Warning size={18} weight="fill" className="text-amber-400" />
+        <div className="rounded-2xl bg-[rgba(254,174,0,0.10)] border border-[rgba(254,174,0,0.32)] p-4 md:p-5 flex items-start gap-3">
+          <div className="shrink-0 w-9 h-9 rounded-xl bg-[rgba(254,174,0,0.20)] flex items-center justify-center">
+            <Warning size={18} weight="fill" className="text-[#B46A20]" />
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-amber-100">
-              Add 1 more car to start comparing
-            </p>
-            <p className="text-sm text-amber-200/80 mt-0.5">
-              Comparison works with 2 or 3 cars. Pick another vehicle from our selection.
+            <p className="font-semibold text-[#17202A]">Добавьте ещё один автомобиль для сравнения</p>
+            <p className="text-sm text-[#51606D] mt-0.5">
+              Сравнение работает от 2 до 3 машин. Выберите ещё один авто из каталога.
             </p>
           </div>
           <button
             onClick={() => navigate('/#deals-budget-filter')}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-amber-500 text-[#18181B] font-semibold text-sm hover:bg-amber-400 transition-colors"
+            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#FEAE00] text-[#18181B] font-semibold text-sm hover:bg-[#FFBF2D] transition-colors"
             data-testid="compare-banner-browse"
           >
-            <Plus size={16} /> Find a car
+            <Plus size={16} /> Подобрать авто
           </button>
         </div>
       )}
 
-      {/* ─────────── DESKTOP / TABLET (≥ md) ─────────── */}
-      <div
-        className={`hidden md:grid gap-4 ${data.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'} ${data.length === 3 ? '!grid-cols-3' : ''}`}
-      >
+      {/* DESKTOP / TABLET */}
+      <div className={`hidden md:grid gap-4 ${data.length === 1 ? 'grid-cols-1 max-w-md' : 'grid-cols-2'} ${data.length === 3 ? '!grid-cols-3' : ''}`}>
         {data.map((item) => (
           <CarCompareCard
             key={item.vehicleId || item.vin}
@@ -331,15 +252,15 @@ export default function ComparePage() {
         ))}
       </div>
 
-      {/* ─────────── MOBILE (< md): pager + single card ─────────── */}
+      {/* MOBILE pager */}
       <div className="md:hidden space-y-4">
         {data.length > 1 && (
           <div className="flex items-center justify-between gap-2">
             <button
               onClick={() => setMobileIdx((i) => Math.max(0, i - 1))}
               disabled={safeMobileIdx === 0}
-              className="w-10 h-10 rounded-full bg-zinc-800 text-white disabled:opacity-30 flex items-center justify-center"
-              aria-label="Previous car"
+              className="w-10 h-10 rounded-full bg-white border border-[#D8D0C6] text-[#162E51] disabled:opacity-30 flex items-center justify-center"
+              aria-label="Предыдущий авто"
             >
               <CaretLeft size={18} weight="bold" />
             </button>
@@ -348,16 +269,16 @@ export default function ComparePage() {
                 <button
                   key={i}
                   onClick={() => setMobileIdx(i)}
-                  className={`h-1.5 rounded-full transition-all ${i === safeMobileIdx ? 'bg-[#FEAE00] w-8' : 'bg-zinc-700 w-3'}`}
-                  aria-label={`Go to car ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${i === safeMobileIdx ? 'bg-[#FEAE00] w-8' : 'bg-[#D8D0C6] w-3'}`}
+                  aria-label={`Перейти к авто ${i + 1}`}
                 />
               ))}
             </div>
             <button
               onClick={() => setMobileIdx((i) => Math.min(data.length - 1, i + 1))}
               disabled={safeMobileIdx >= data.length - 1}
-              className="w-10 h-10 rounded-full bg-zinc-800 text-white disabled:opacity-30 flex items-center justify-center"
-              aria-label="Next car"
+              className="w-10 h-10 rounded-full bg-white border border-[#D8D0C6] text-[#162E51] disabled:opacity-30 flex items-center justify-center"
+              aria-label="Следующий авто"
             >
               <CaretRight size={18} weight="bold" />
             </button>
@@ -370,8 +291,6 @@ export default function ComparePage() {
             rows={visibleRows}
             leaderByKey={leaderByKey}
             onRemove={remove}
-            // On mobile we also surface the "other car's" value as a small chip
-            // next to each row so the comparison context isn't lost while paging.
             peers={data.filter((_, i) => i !== safeMobileIdx)}
             onPeerClick={(idx) => {
               const peerVehicleId = data.filter((_, i) => i !== safeMobileIdx)[idx]?.vehicleId
@@ -390,47 +309,52 @@ export default function ComparePage() {
 
 function CompareHeader({ count, onClear, onAddCar }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative overflow-hidden bg-white border border-[#E4E4E7] rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+    >
+      <span className="absolute left-0 right-0 top-0 h-[3px] bg-gradient-to-r from-[#FEAE00] via-[#FFEA43] to-transparent" />
       <div className="flex items-center gap-3">
-        <div className="p-3 rounded-2xl bg-[#FEAE00]/15 ring-1 ring-[#FEAE00]/30">
-          <Scales size={24} weight="fill" className="text-[#FEAE00]" />
+        <div className="p-3 rounded-2xl bg-[rgba(22,46,81,0.10)] ring-1 ring-[rgba(22,46,81,0.20)]">
+          <Scales size={24} weight="fill" className="text-[#162E51]" />
         </div>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
-            Comparison
-          </h1>
-          <p className="text-zinc-400 text-sm mt-0.5">
-            {count} / 3 cars
-          </p>
+          <div className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.18em] font-bold text-[#FEAE00] mb-0.5">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FEAE00]" />
+            DM Auto • Сравнение
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#18181B] leading-tight">Сравнение авто</h1>
+          <p className="text-[#71717A] text-sm mt-0.5">{count} / 3 авто</p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
         {onAddCar && (
           <button
             onClick={onAddCar}
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-800 text-zinc-200 hover:bg-[#FEAE00] hover:text-[#18181B] border border-zinc-700 hover:border-[#FEAE00] transition-colors text-sm font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white text-[#162E51] hover:bg-[#FEAE00] hover:text-[#18181B] border border-[#D8D0C6] hover:border-[#FEAE00] transition-colors text-sm font-semibold"
             data-testid="compare-add-car-btn"
-            title="Add another car from the catalog"
+            title="Добавить ещё один автомобиль"
           >
-            <Plus size={14} weight="bold" /> Add car
+            <Plus size={14} weight="bold" /> Добавить авто
           </button>
         )}
         {onClear && count > 0 && (
           <button
             onClick={onClear}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white hover:border-zinc-600 transition-colors text-sm font-medium"
+            className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-[#D8D0C6] text-[#A13A3A] hover:bg-[rgba(161,58,58,0.08)] transition-colors text-sm font-semibold"
             data-testid="clear-compare-btn"
           >
             <Trash size={14} />
-            Clear
+            Очистить
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
-/* ─────────────────── Single Car Card (photo + specs in one card) ─────────────────── */
+/* ─────────────────── Single Car Card ─────────────────── */
 
 function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick }) {
   const navigate = useNavigate();
@@ -446,14 +370,13 @@ function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick 
 
   return (
     <div
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-gradient-to-b from-[#17171A] to-[#0F0F11] shadow-lg shadow-black/30 hover:border-zinc-700 transition-colors"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-[#E4E4E7] bg-white shadow-sm hover:border-[rgba(22,46,81,0.30)] hover:shadow-[0_18px_36px_-16px_rgba(22,46,81,0.22)] transition-all"
       data-testid={`compare-card-${item.vin}`}
     >
-      {/* Photo */}
       <button
         type="button"
         onClick={openDetail}
-        className="block w-full aspect-[16/10] overflow-hidden bg-zinc-900 relative"
+        className="block w-full aspect-[16/10] overflow-hidden bg-[#F3EEE7] relative"
         aria-label={title}
       >
         <img
@@ -463,14 +386,14 @@ function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick 
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
           onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-transparent pointer-events-none" />
         <span
           role="button"
           tabIndex={0}
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemove?.(item.vehicleId || item.vin); }}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onRemove?.(item.vehicleId || item.vin); } }}
-          className="absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-full bg-black/60 backdrop-blur-sm text-white/90 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-          aria-label="Remove"
+          className="absolute top-3 right-3 inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm text-[#162E51] hover:bg-[#A13A3A] hover:text-white transition-colors cursor-pointer shadow"
+          aria-label="Удалить из сравнения"
           data-testid={`remove-compare-${item.vin}`}
         >
           <Trash size={16} />
@@ -481,34 +404,33 @@ function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick 
           </div>
         )}
         {mileage && (
-          <div className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-black/60 backdrop-blur-sm text-white/90 text-xs font-semibold">
+          <div className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/85 backdrop-blur-sm text-[#162E51] text-xs font-semibold">
             <Gauge size={14} />
             {mileage}
           </div>
         )}
       </button>
 
-      {/* Title + VIN block (inside the same card) */}
-      <div className="px-4 pt-4 pb-3 space-y-1.5 border-b border-zinc-800/80">
+      <div className="px-4 pt-4 pb-3 space-y-1.5 border-b border-[#E6DED4]">
         <button type="button" onClick={openDetail} className="text-left w-full">
-          <h3 className="text-base font-bold text-white leading-tight line-clamp-2 group-hover:text-[#FEAE00] transition-colors">
-            {title || 'Unknown vehicle'}
+          <h3 className="text-base font-bold text-[#18181B] leading-tight line-clamp-2 group-hover:text-[#162E51] transition-colors">
+            {title || 'Неизвестный автомобиль'}
           </h3>
         </button>
         {item.vin && (
-          <p className="text-[11px] font-mono text-zinc-500 tracking-wide truncate" title={item.vin}>
+          <p className="text-[11px] font-mono text-[#A1A1AA] tracking-wide truncate" title={item.vin}>
             VIN: {item.vin}
           </p>
         )}
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
           {item.bodyType && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-300 text-[11px] capitalize">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F3EEE7] text-[#51606D] text-[11px] capitalize">
               <CarIcon size={12} />
               {String(item.bodyType).toLowerCase()}
             </span>
           )}
           {item.fuel && (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-800/80 text-zinc-300 text-[11px] capitalize">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#F3EEE7] text-[#51606D] text-[11px] capitalize">
               <GasPump size={12} />
               {String(item.fuel).toLowerCase()}
             </span>
@@ -516,7 +438,6 @@ function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick 
         </div>
       </div>
 
-      {/* Spec rows — inside the SAME card (unified visual) */}
       <div className="flex flex-col">
         {rows.map((row, ri) => {
           const val = item[row.key];
@@ -525,20 +446,20 @@ function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick 
           return (
             <div
               key={row.key}
-              className={`px-4 py-3 flex items-center justify-between gap-3 border-b border-zinc-800/60 last:border-b-0 ${ri % 2 ? 'bg-white/[0.015]' : ''} ${isLeader ? 'bg-emerald-500/[0.06]' : ''}`}
+              className={`px-4 py-3 flex items-center justify-between gap-3 border-b border-[#F3EEE7] last:border-b-0 ${ri % 2 ? 'bg-[#FBF7F0]' : ''} ${isLeader ? 'bg-emerald-50' : ''}`}
             >
-              <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-zinc-500 min-w-0">
-                <row.icon size={13} weight="duotone" className="shrink-0" />
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-[#71717A] min-w-0">
+                <row.icon size={13} weight="duotone" className="shrink-0 text-[#162E51]" />
                 <span className="truncate">{row.label}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-sm text-white/90 text-right min-w-0">
+              <div className="flex items-center gap-1.5 text-sm text-[#17202A] text-right min-w-0">
                 {isLeader && (
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-bold shrink-0" title="Best in this row">
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold shrink-0" title="Лучшее значение">
                     ★
                   </span>
                 )}
                 <div className="truncate">
-                  {rendered || <span className="text-zinc-600">—</span>}
+                  {rendered || <span className="text-[#A1A1AA]">—</span>}
                 </div>
               </div>
             </div>
@@ -546,31 +467,29 @@ function CarCompareCard({ item, rows, leaderByKey, onRemove, peers, onPeerClick 
         })}
       </div>
 
-      {/* Mobile-only: peers at a glance (so user keeps the comparison context
-          while flipping between cards on a phone) */}
       {peers && peers.length > 0 && (
-        <div className="px-4 py-3 border-t border-zinc-800 bg-black/30">
-          <p className="text-[10px] uppercase tracking-wider text-zinc-500 mb-2">
-            Compare with
+        <div className="px-4 py-3 border-t border-[#E6DED4] bg-[#F3EEE7]">
+          <p className="text-[10px] uppercase tracking-wider text-[#71717A] mb-2">
+            Сравнить с
           </p>
           <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1">
             {peers.map((p, idx) => (
               <button
                 key={p.vehicleId || p.vin}
                 onClick={() => onPeerClick?.(idx)}
-                className="shrink-0 flex items-center gap-2 px-2 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 transition-colors min-w-[180px]"
+                className="shrink-0 flex items-center gap-2 px-2 py-1.5 rounded-xl bg-white hover:bg-[rgba(22,46,81,0.06)] border border-[#D8D0C6] hover:border-[#162E51] transition-colors min-w-[180px]"
               >
                 <img
                   src={p.image || FALLBACK_IMG}
                   alt=""
-                  className="w-10 h-10 rounded-lg object-cover bg-zinc-800"
+                  className="w-10 h-10 rounded-lg object-cover bg-[#F3EEE7]"
                   onError={(e) => { e.currentTarget.src = FALLBACK_IMG; }}
                 />
                 <div className="text-left flex-1 min-w-0">
-                  <div className="text-xs font-semibold text-white truncate">
+                  <div className="text-xs font-semibold text-[#17202A] truncate">
                     {p.title || [p.year, p.make, p.model].filter(Boolean).join(' ')}
                   </div>
-                  <div className="text-[10px] text-zinc-500">
+                  <div className="text-[10px] text-[#71717A]">
                     {p.year || '—'} · {fmtMileage(p.mileage, p.mileageUnit) || '—'}
                   </div>
                 </div>

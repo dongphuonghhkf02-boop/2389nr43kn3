@@ -1,18 +1,30 @@
 [
   {
-    "content": "Hero: все 3 строки заголовка в один размер (как на вебе)",
-    "status": "in_progress"
+    "content": "Переименовать nav: \"Дом\" → \"Главная\", \"Общий\" → \"Рассылка\" (shared)",
+    "status": "completed"
   },
   {
-    "content": "Hero: заменить default-картинку на ту, что используется на вебе (Unsplash gray car)",
-    "status": "pending"
+    "content": "Русифицировать SharedCarsPage.jsx",
+    "status": "completed"
   },
   {
-    "content": "Search-блок: переделать на логику десктопа — brands/models из API, single Year-дропдаун (не native select), submit → openGetInTouch с source=home_hero_select",
-    "status": "pending"
+    "content": "Русифицировать + задизайнить ComparePage.jsx",
+    "status": "completed"
   },
   {
-    "content": "Визуальная проверка",
-    "status": "pending"
+    "content": "Убрать мок-уведомления, заменить на промо/новые авто",
+    "status": "completed"
+  },
+  {
+    "content": "Засеять 13 реальных тест-автомобилей в БД",
+    "status": "completed"
+  },
+  {
+    "content": "Исправить статистику \"Подборка 0 / Топ 9\" — реальные счётчики",
+    "status": "completed"
+  },
+  {
+    "content": "Favorites/Compare/Shared API работают end-to-end",
+    "status": "completed"
   }
 ]

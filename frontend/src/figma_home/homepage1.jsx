@@ -86,7 +86,7 @@ const Homepage1 = ()=> {
       <BrandLogos1 />
       <section className={styles.rectangleParent} id="curated-deals">
         <div className={styles.frameChild} />
-        <VehicleDeals1 count={dealsCount} topN={9} />
+        <VehicleDeals1 count={dealsCount} topN={Math.min(9, dealsCount || 0)} />
         <FrameComponent20
           onChange={handleDealsFilterChange}
           countOverride={dealsCount}
