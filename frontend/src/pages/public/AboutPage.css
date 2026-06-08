@@ -1,0 +1,318 @@
+/* =============================================================================
+ *  DM Auto — About Us page (V11)
+ *  Page primitives (hero head / kicker / cards) come from ContactsPage.css.
+ *  This file only adds the gallery section so we never collide with shared
+ *  styles. Theme: cream (#F5F0E8) + navy (#0F1729) + amber (#FEAE00).
+ * ========================================================================== */
+
+/* Section wrapper — spacing parity with `.bibi-c2-channels-section` */
+.bibi-c2-gallery-section {
+  padding: 80px 0 40px;
+}
+
+/* Masonry grid — fluid, varied tile sizes */
+.bibi-c2-gallery {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 1fr;
+  grid-auto-flow: dense;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+@media (min-width: 640px) {
+  .bibi-c2-gallery { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .bibi-c2-gallery {
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 130px;
+  }
+}
+@media (min-width: 1280px) {
+  .bibi-c2-gallery { grid-auto-rows: 150px; }
+}
+
+/* Tile */
+.bibi-c2-tile {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bibi-c2-tile__frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1.5px solid #E6DED4;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+.bibi-c2-tile:hover .bibi-c2-tile__frame {
+  transform: translateY(-3px);
+  border-color: #FEAE00;
+  box-shadow: 0 16px 32px rgba(15, 23, 41, 0.10);
+}
+.bibi-c2-tile__frame > img,
+.bibi-c2-tile__frame > video,
+.bibi-c2-tile__frame > iframe,
+.bibi-c2-tile__frame > .bibi-c2-tile__placeholder {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 0;
+}
+.bibi-c2-tile__placeholder {
+  background: linear-gradient(135deg, #F5F0E8 0%, #E6DED4 100%);
+}
+
+/* Play & mute controls (videos) */
+.bibi-c2-tile__play {
+  position: absolute; inset: 0;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  background: rgba(15, 23, 41, 0.18);
+  border: 0;
+  cursor: pointer;
+  color: #FFFFFF;
+  transition: background-color .2s ease, color .2s ease;
+}
+.bibi-c2-tile__play:hover {
+  background: rgba(15, 23, 41, 0.34);
+  color: #FEAE00;
+}
+.bibi-c2-tile__mute {
+  position: absolute;
+  bottom: 12px; right: 12px;
+  width: 36px; height: 36px;
+  border-radius: 999px;
+  background: rgba(15, 23, 41, 0.65);
+  color: #FFFFFF;
+  border: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background-color .2s ease, color .2s ease;
+}
+.bibi-c2-tile__mute:hover {
+  background: rgba(15, 23, 41, 0.85);
+  color: #FEAE00;
+}
+
+/* Amber pill tag on video tiles */
+.bibi-c2-tile__tag {
+  position: absolute;
+  top: 12px; left: 12px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  background: #FEAE00;
+  color: #0F1729;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Caption */
+.bibi-c2-tile__caption {
+  margin: 0;
+  font-size: 13px;
+  color: #4A5260;
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+/* Tile sizes (desktop grid spans, 6-col layout) */
+.bibi-c2-tile--size-sm   { grid-column: span 2; grid-row: span 2; }
+.bibi-c2-tile--size-md   { grid-column: span 2; grid-row: span 3; }
+.bibi-c2-tile--size-lg   { grid-column: span 3; grid-row: span 3; }
+.bibi-c2-tile--size-xl   { grid-column: span 4; grid-row: span 4; }
+.bibi-c2-tile--size-tall { grid-column: span 2; grid-row: span 4; }
+.bibi-c2-tile--size-wide { grid-column: span 4; grid-row: span 2; }
+
+/* Tablet — relax spans */
+@media (max-width: 1023px) and (min-width: 640px) {
+  .bibi-c2-tile { grid-column: span 1 !important; grid-row: auto !important; }
+  .bibi-c2-tile--size-lg,
+  .bibi-c2-tile--size-xl,
+  .bibi-c2-tile--size-wide { grid-column: span 2 !important; }
+  .bibi-c2-tile__frame { min-height: 260px; aspect-ratio: 4 / 3; }
+  .bibi-c2-tile--size-tall .bibi-c2-tile__frame { aspect-ratio: 3 / 4; }
+  .bibi-c2-tile--size-wide .bibi-c2-tile__frame { aspect-ratio: 16 / 9; }
+}
+
+/* Mobile — single column, predictable aspects */
+@media (max-width: 639px) {
+  .bibi-c2-tile { grid-column: 1 / -1 !important; grid-row: auto !important; }
+  .bibi-c2-tile__frame {
+    aspect-ratio: 4 / 3;
+    min-height: 0;
+  }
+  .bibi-c2-tile--size-tall .bibi-c2-tile__frame { aspect-ratio: 3 / 4; }
+  .bibi-c2-tile--size-wide .bibi-c2-tile__frame { aspect-ratio: 16 / 9; }
+
+  .bibi-c2-gallery-section { padding: 56px 0 24px; }
+}
+
+/* =============================================================================
+ *  MOBILE SLIDERS (≤ 720 px) — Native CSS scroll-snap, no JS required.
+ *  Applies to:
+ *    • Gallery tiles  (.bibi-c2-gallery)
+ *    • Value cards    (.bibi-c2-adv-grid)  — scoped to /about page only
+ *  Behaviour:
+ *    • Horizontal swipe, one tile centered per snap step
+ *    • Custom slim scrollbar hidden (native swipe gesture only)
+ *    • Edge peek (~14% next/prev tile visible) so the slider is obvious
+ *    • Predictable aspect-ratios per tile size
+ * ========================================================================== */
+@media (max-width: 720px) {
+
+  /* Stretch sliders edge-to-edge through the container's side padding so
+     the first/last card hugs the screen edge nicely. */
+  .bibi-c2-page .bibi-c2-gallery,
+  .bibi-c2-page .bibi-about-values .bibi-c2-adv-grid,
+  .bibi-c2-page [data-testid="about-values"] .bibi-c2-adv-grid {
+    display: flex !important;
+    grid-template-columns: none !important;
+    grid-auto-rows: auto !important;
+    grid-auto-flow: row !important;
+    flex-wrap: nowrap;
+    /* CRITICAL: align-items: stretch so every figcaption row stretches
+       to the tallest peer — keeps the row of tiles visually aligned
+       even when captions have a different number of lines. */
+    align-items: stretch;
+    gap: 14px;
+    margin: 0 -18px;                /* eat container padding */
+    padding: 4px 18px 18px;          /* visual breathing + room for shadow */
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 18px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .bibi-c2-page .bibi-c2-gallery::-webkit-scrollbar,
+  .bibi-c2-page [data-testid="about-values"] .bibi-c2-adv-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Gallery tiles — flex items, full-width minus edge peek of next slide.
+     EVERY tile gets the SAME flex-basis and the SAME total height so the
+     carousel row is visually aligned regardless of original tile size or
+     caption length. We achieve this by:
+       1. Fixed basis (86%) and max-width — identical width per tile.
+       2. Frame uses a FIXED pixel height (not aspect-ratio) — flex
+          containers with align-items: stretch override aspect-ratio,
+          so we pin the frame height directly.
+       3. Caption uses fixed height (always 2 lines reserved) — identical
+          caption row height per tile.
+       4. Figure layout collapses to align-self: stretch so the bottom
+          edges align across all tiles in the row. */
+  .bibi-c2-page .bibi-c2-tile {
+    flex: 0 0 86%;
+    max-width: 86%;
+    min-width: 0;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-self: start;            /* never stretch the figure vertically */
+  }
+  .bibi-c2-page .bibi-c2-tile__frame {
+    /* Hard-pin photo height so every frame in the row has the same
+       height regardless of original Figma "size" classifier. 218px ≈
+       304 * 3/4 = the visual height of a 4:3 photo at the carousel's
+       86%-of-360 width. */
+    aspect-ratio: auto !important;
+    height: 218px !important;
+    min-height: 218px;
+    max-height: 218px;
+    flex: 0 0 218px;
+  }
+  /* MOBILE: force ALL gallery tile variants to the same frame height
+     so the scroll-snap row is perfectly aligned (no mixed heights). */
+  .bibi-c2-page .bibi-c2-tile--size-tall .bibi-c2-tile__frame,
+  .bibi-c2-page .bibi-c2-tile--size-wide .bibi-c2-tile__frame,
+  .bibi-c2-page .bibi-c2-tile--size-sm .bibi-c2-tile__frame,
+  .bibi-c2-page .bibi-c2-tile--size-md .bibi-c2-tile__frame,
+  .bibi-c2-page .bibi-c2-tile--size-lg .bibi-c2-tile__frame,
+  .bibi-c2-page .bibi-c2-tile--size-xl .bibi-c2-tile__frame {
+    aspect-ratio: auto !important;
+    height: 218px !important;
+    min-height: 218px;
+    max-height: 218px;
+    flex: 0 0 218px;
+  }
+  /* Caption — pinned to exactly 2 lines (38px) so total tile height is
+     identical regardless of how long the admin's caption text is. */
+  .bibi-c2-page .bibi-c2-tile__caption {
+    font-size: 13px;
+    line-height: 1.45;
+    padding: 0 2px;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 38px;                 /* exactly 2 lines @ 13px * 1.45 */
+    min-height: 38px;
+    margin: 0;
+    flex: 0 0 38px;
+  }
+
+  /* Value cards — same slider, single-card focus */
+  .bibi-c2-page [data-testid="about-values"] .bibi-c2-adv {
+    flex: 0 0 86%;
+    max-width: 86%;
+    min-width: 0;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+
+  /* Tighter section padding & comfortable headings on mobile */
+  .bibi-c2-page .bibi-c2-gallery-section { padding: 48px 0 16px; }
+  .bibi-c2-page .bibi-c2-adv-section { padding: 40px 0 16px; }
+  .bibi-c2-page .bibi-c2-head {
+    margin: 0 auto 22px;
+    padding: 0 4px;
+  }
+  .bibi-c2-page .bibi-c2-title {
+    font-size: clamp(26px, 8vw, 34px);
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    hyphens: auto;
+  }
+  .bibi-c2-page .bibi-c2-subline {
+    font-size: 14px;
+    line-height: 1.55;
+    padding: 0 4px;
+    overflow-wrap: anywhere;
+  }
+  .bibi-c2-page .bibi-c2-kicker { font-size: 11px; margin-bottom: 10px; }
+
+  /* PageHero title — keep wide words readable on small screens */
+  .bibi-c2-page .bibi-contacts-hero { overflow: hidden; }
+  .bibi-c2-page .bibi-contacts-hero h1 {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+}
+
+/* Extra-small phones: more compact card peek */
+@media (max-width: 380px) {
+  .bibi-c2-page .bibi-c2-tile,
+  .bibi-c2-page [data-testid="about-values"] .bibi-c2-adv {
+    flex-basis: 90%;
+    max-width: 90%;
+  }
+}

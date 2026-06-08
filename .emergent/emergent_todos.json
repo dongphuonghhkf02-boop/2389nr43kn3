@@ -1,0 +1,22 @@
+[
+  {
+    "content": "Copy repository code from /tmp/repo to /app (preserve .env files)",
+    "status": "completed"
+  },
+  {
+    "content": "Install backend Python dependencies",
+    "status": "completed"
+  },
+  {
+    "content": "Install frontend Node dependencies (yarn)",
+    "status": "completed"
+  },
+  {
+    "content": "Start services via supervisor and verify logs",
+    "status": "completed"
+  },
+  {
+    "content": "Verify frontend & backend reachable via preview URL",
+    "status": "completed"
+  }
+]
