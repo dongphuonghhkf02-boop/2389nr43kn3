@@ -275,21 +275,10 @@ const Footer1 = ({ className = "" }) => {
               ))}
             </div>
           </div>
-          <div className={styles.contactGroup}>
-            <span className={styles.contactLabel}>{T.addressLabel}</span>
-            <ul className={styles.addressList}>
-              {addresses.map((a, i) => (
-                <li key={`${a}-${i}`}>{a}</li>
-              ))}
-            </ul>
-          </div>
-          <div
-            className={styles.contactGroup}
-            data-testid="footer-registration-address"
-          >
-            <span className={styles.contactLabel}>{T.registrationLabel}</span>
-            <div className={styles.registrationVal}>{registrationAddress}</div>
-          </div>
+          {/* Address blocks removed per product direction:
+              We do not have a physical office — all work is online &
+              by appointment. The Telegram / Phone CTAs above are the
+              canonical contact channels. */}
         </div>
 
         {/* Col 4 — Stay Connected */}
@@ -410,7 +399,7 @@ const Footer1 = ({ className = "" }) => {
             onClick={() => openPolicy("conditions")}
             data-testid="footer-policy-conditions"
           >
-            {T.conditions}
+            Conditions
           </button>
           <span className={styles.legalDot} aria-hidden="true">·</span>
           <button
@@ -419,7 +408,7 @@ const Footer1 = ({ className = "" }) => {
             onClick={() => openPolicy("privacy")}
             data-testid="footer-policy-privacy"
           >
-            {T.privacy}
+            Privacy Policy
           </button>
           <span className={styles.legalDot} aria-hidden="true">·</span>
           <button
@@ -428,7 +417,7 @@ const Footer1 = ({ className = "" }) => {
             onClick={() => openPolicy("cookies")}
             data-testid="footer-policy-cookies"
           >
-            {T.cookies}
+            Cookies
           </button>
         </div>
       </footer>

@@ -224,48 +224,12 @@ export default function MobileFooter({ lang: langProp }) {
           </div>
         </div>
 
-        {/* Address */}
-        <div data-testid="footer-address-block">
-          <div style={{
-            fontSize: 11, fontWeight: 600, letterSpacing: '0.14em',
-            textTransform: 'uppercase', color: '#7a8699',
-            marginBottom: 8,
-          }}>
-            {langKey === 'ru' ? 'Адрес' : 'Address'}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {addresses.map((a, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                  fontSize: 14,
-                  lineHeight: '20px',
-                  color: '#17202A',
-                  fontWeight: 500,
-                }}
-              >
-                <MapPin size={14} strokeWidth={2.2} style={{ marginTop: 3, flexShrink: 0, color: '#FEAE00' }} />
-                <span>{a}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Working hours + reg address — small muted lines */}
+        {/* Availability (no physical address — we work online & by appointment) */}
         <div
           data-testid="footer-working-hours"
           style={{ fontSize: 12, lineHeight: '18px', color: '#7a8699' }}
         >
           {langKey === 'ru' ? 'Режим работы:' : 'Availability:'} {workingHours}
-        </div>
-        <div
-          data-testid="footer-registration-address"
-          style={{ fontSize: 12, lineHeight: '18px', color: '#7a8699' }}
-        >
-          {langKey === 'ru' ? 'Адрес регистрации:' : 'Registration address:'} {regAddress}
         </div>
       </div>
 
@@ -408,9 +372,9 @@ export default function MobileFooter({ lang: langProp }) {
         }}
       >
         {[
-          { fallback: langKey === 'ru' ? 'Условия' : 'Conditions',         tKey: 'mobileFooterConditions', key: 'conditions' },
-          { fallback: langKey === 'ru' ? 'Конфиденциальность' : 'Privacy', tKey: 'mobileFooterPrivacy',    key: 'privacy'    },
-          { fallback: 'Cookies',                                           tKey: 'mobileFooterCookies',    key: 'cookies'    },
+          { label: 'Conditions',     key: 'conditions' },
+          { label: 'Privacy Policy', key: 'privacy'    },
+          { label: 'Cookies',        key: 'cookies'    },
         ].map((it, idx, arr) => (
           <React.Fragment key={it.key}>
             <button
@@ -431,7 +395,7 @@ export default function MobileFooter({ lang: langProp }) {
                 flexShrink: 0,
               }}
             >
-              {t(it.tKey) || it.fallback}
+              {it.label}
             </button>
             {idx < arr.length - 1 ? (
               <span
